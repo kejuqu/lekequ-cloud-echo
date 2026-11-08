@@ -1,0 +1,2066 @@
+:root {
+  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #f0edda;
+  background: #25463b;
+  font-synthesis: none;
+  font-size: 13px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #edcf8b;
+  outline-offset: 4px;
+}
+button:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+main {
+  height: 100dvh;
+  min-height: 540px;
+  overflow: hidden;
+  position: relative;
+}
+.world,
+.vignette {
+  position: absolute;
+  inset: 0;
+}
+.world canvas {
+  display: block;
+  touch-action: none;
+}
+.vignette {
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #102d24b5, transparent 48%, #18362c22),
+    linear-gradient(
+      0deg,
+      #112e28db,
+      transparent 24%,
+      transparent 76%,
+      #102e2680
+    );
+}
+header {
+  position: absolute;
+  top: env(safe-area-inset-top, 0);
+  left: 0;
+  right: 0;
+  height: 93px;
+  margin: 0 38px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ffffff23;
+  justify-content: space-between;
+  gap: 15px;
+}
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #f1e4bf;
+  border: 0;
+  background: none;
+  text-align: left;
+  font:
+    600 23px Georgia,
+    "Songti SC",
+    serif;
+  letter-spacing: 4px;
+  padding: 0;
+}
+.brand small {
+  display: block;
+  font: 8px Arial;
+  letter-spacing: 3px;
+  margin-top: 8px;
+  color: #c5d0ba;
+}
+.chapter {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  color: #e0e5d5;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.chapter i {
+  height: 16px;
+  width: 1px;
+  background: #c4c9af55;
+}
+.chapter b {
+  font: 25px Georgia;
+  color: #eed6a3;
+}
+.chapter span:last-child {
+  font-size: 10px;
+  color: #c3cfbf;
+}
+nav {
+  display: flex;
+  gap: 9px;
+}
+nav button,
+.close {
+  border: 1px solid #ffffff25;
+  background: #1b3c3333;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  padding: 7px;
+}
+nav svg {
+  width: 16px;
+  height: 16px;
+}
+.mission {
+  position: absolute;
+  left: 40px;
+  top: 127px;
+  width: 264px;
+  pointer-events: none;
+}
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #c4d0b6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eyebrow > span:not(.stars) {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #c5daa0;
+}
+.eyebrow .stars {
+  letter-spacing: 1px;
+  font-size: 8px;
+  margin-left: auto;
+  color: #d4bd83;
+}
+.mission h1 {
+  font:
+    500 24px Georgia,
+    "Songti SC",
+    serif;
+  letter-spacing: 3px;
+  margin: 17px 0 13px;
+}
+.mission h1 em {
+  font-style: normal;
+  font-size: 43px;
+  display: block;
+  color: #f3ddb0;
+  margin-top: 7px;
+  font-weight: 600;
+}
+.mission > p {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #c1ccba;
+  line-height: 1.8;
+  margin: 0;
+}
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, #c4d0ad55, transparent);
+  margin: 21px 0 18px;
+}
+.goal {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  color: #ccd6c3;
+}
+.goal svg {
+  color: #e3c28c;
+}
+.goal b {
+  margin-left: auto;
+  border: 1px solid #c6b88366;
+  border-radius: 3px;
+  padding: 6px 10px;
+  color: #f0d8a6;
+  letter-spacing: 2px;
+  font:
+    14px Georgia,
+    "Songti SC",
+    serif;
+}
+.word-slots {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 20px 0 17px;
+}
+.word-slots > span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 36px;
+  border: 1px dashed #d6d5ac44;
+  color: #c6d1b86b;
+  font:
+    18px Georgia,
+    "Songti SC",
+    serif;
+  border-radius: 3px;
+  background: #17382c33;
+}
+.word-slots > span.collected {
+  color: #f5dc9f;
+  border: 1px solid #ddc38b88;
+  background: #ddc38b22;
+}
+.word-slots svg {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+.tasks {
+  display: grid;
+  gap: 13px;
+  margin: 18px 0;
+}
+.tasks > div {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 10px;
+  color: #c7d0bd;
+}
+.tasks i {
+  font: 9px Georgia;
+  border: 1px solid #a5b19c77;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.tasks span {
+  margin-left: auto;
+  color: #ebd3a1;
+  font-size: 10px;
+}
+.peace {
+  font-size: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #afc0a6;
+}
+.inventory {
+  position: absolute;
+  top: 128px;
+  right: 38px;
+  width: 224px;
+  background: #193e3455;
+  border: 1px solid #e1e6c922;
+  backdrop-filter: blur(14px);
+  padding: 18px;
+  border-radius: 5px;
+}
+.inventory-title {
+  display: flex;
+  justify-content: space-between;
+  font:
+    13px Georgia,
+    "Songti SC",
+    serif;
+  letter-spacing: 2px;
+}
+.inventory-title > span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.inventory-title small {
+  font: 8px Arial;
+  color: #b6c5ad;
+  letter-spacing: 2px;
+  padding-top: 5px;
+}
+.bag {
+  display: flex;
+  gap: 10px;
+  margin: 17px 0 20px;
+  border: 1px dashed #dce2c52c;
+  padding: 14px 8px;
+  border-radius: 4px;
+  color: #bbc9b1;
+  align-items: center;
+}
+.bag svg {
+  color: #c1bd91;
+  flex-shrink: 0;
+}
+.bag b {
+  font-size: 10px;
+  font-weight: 400;
+}
+.bag small {
+  display: block;
+  font-size: 8px;
+  margin-top: 6px;
+  white-space: nowrap;
+  color: #a3b69f;
+}
+.bag.found {
+  border-color: #e8cc82;
+  color: #f5d98d;
+}
+.altitude {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: #c0ceb9;
+}
+.altitude b {
+  font: 27px Georgia;
+  color: #efe3bf;
+}
+.altitude small {
+  font: 10px Arial;
+  margin-left: 3px;
+}
+.track {
+  height: 3px;
+  background: #d2dfbd22;
+  margin: 9px 0;
+}
+.track i {
+  display: block;
+  height: 100%;
+  background: #dfca8d;
+  transition: width 0.2s;
+}
+.elevation {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8px;
+  color: #b7c7ad;
+}
+.elevation svg {
+  margin-left: auto;
+}
+.resource {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 13px;
+  font-size: 9px;
+  color: #c5d1ba;
+}
+.resource b {
+  font: 9px Georgia;
+  width: 19px;
+  text-align: right;
+}
+.resource meter {
+  width: 100%;
+  height: 5px;
+  flex: 1;
+  border: 0;
+  background: #b2bb962a;
+  border-radius: 4px;
+}
+.resource meter::-webkit-meter-bar {
+  background: #b2bb962a;
+  border: 0;
+}
+.resource meter::-webkit-meter-optimum-value {
+  background: #c1d19c;
+}
+.energy meter::-webkit-meter-optimum-value {
+  background: #e9c77e;
+}
+.quick-tools {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 17px;
+}
+.quick-tools button {
+  border: 1px solid #e4d4a533;
+  border-radius: 50%;
+  background: #13362d44;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+}
+.intro {
+  position: absolute;
+  left: 40px;
+  bottom: 125px;
+  max-width: 350px;
+}
+.intro-kicker {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #d6c895;
+}
+.intro h2 {
+  font:
+    500 42px/1.5 Georgia,
+    "Songti SC",
+    serif;
+  letter-spacing: 5px;
+  margin: 16px 0;
+}
+.intro p {
+  font-size: 11px;
+  line-height: 2.1;
+  color: #cbd6c0;
+  letter-spacing: 1px;
+  margin-bottom: 22px;
+}
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 15px 24px;
+  border: 1px solid #efcf8e;
+  background: linear-gradient(110deg, #e9ce97, #cba76c);
+  color: #304036;
+  font-weight: 600;
+  border-radius: 3px;
+  box-shadow: 0 5px 30px #e9c77e15;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.intro > small {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8px;
+  margin-top: 16px;
+  color: #b9c6ac;
+  letter-spacing: 1px;
+}
+.intro-buttons {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.secondary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  background: none;
+  border: 0;
+  color: #d6c292;
+  font-size: 11px;
+  padding: 6px 0;
+}
+.compass {
+  position: absolute;
+  left: 50%;
+  top: 113px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 23px;
+  font: 10px Georgia;
+  color: #e9eedb;
+  pointer-events: none;
+}
+.compass b {
+  color: #f5d58a;
+}
+.compass i {
+  height: 7px;
+  width: 1px;
+  background: #f5f3ce77;
+}
+.compass div {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  font-size: 7px;
+  color: #edcf94;
+  transform: translateX(-50%);
+}
+footer {
+  position: absolute;
+  bottom: env(safe-area-inset-bottom, 0);
+  height: 76px;
+  left: 38px;
+  right: 38px;
+  border-top: 1px solid #ffffff20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sound-note {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font:
+    11px Georgia,
+    "Songti SC",
+    serif;
+  color: #dfd7b8;
+  flex-shrink: 0;
+}
+.sound-bars {
+  letter-spacing: 2px;
+  color: #cdb984;
+  font: 14px Arial;
+}
+.sound-note small {
+  display: block;
+  font: 8px Arial;
+  color: #a6b79e;
+  margin-top: 7px;
+  letter-spacing: 1px;
+}
+.keyboard {
+  display: flex;
+  gap: 14px;
+  color: #b6c3ae;
+  font-size: 9px;
+}
+.keyboard span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+kbd {
+  font: 8px Arial;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d1d7bb44;
+  border-radius: 3px;
+  padding: 4px;
+  min-width: 18px;
+  color: #e2e3cb;
+  background: #32493955;
+}
+.help {
+  border: 0;
+  background: none;
+  font-size: 10px;
+  color: #c7d0ba;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  white-space: nowrap;
+}
+.help span {
+  border: 1px solid #cbd1b766;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+}
+.journey-note {
+  position: absolute;
+  left: 50%;
+  bottom: 112px;
+  transform: translateX(-50%);
+  max-width: 490px;
+  text-align: center;
+  color: #f0e3c2;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  width: max-content;
+}
+.journey-note > span {
+  display: block;
+  background: #17382d88;
+  border: 1px solid #e4d4aa22;
+  border-radius: 4px;
+  padding: 11px 17px;
+  max-width: 90vw;
+}
+.journey-note button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #f3d59b44;
+  border-radius: 4px;
+  background: #17382dbb;
+  backdrop-filter: blur(8px);
+  padding: 12px 18px;
+  max-width: 90vw;
+  pointer-events: auto;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.journey-note .toast {
+  margin-bottom: 10px;
+  font-size: 11px;
+  line-height: 1.7;
+  text-shadow: 0 2px 8px #122e26;
+  background: #153d3188;
+  padding: 7px 12px;
+  border-radius: 4px;
+  max-width: 90vw;
+}
+.weapon-panel {
+  position: absolute;
+  bottom: 111px;
+  left: 40px;
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  color: #dfd7af;
+}
+.weapon-panel b {
+  font-size: 12px;
+  font-weight: 500;
+}
+.weapon-panel small {
+  display: block;
+  font-size: 9px;
+  margin-top: 5px;
+  color: #b5c5a9;
+}
+.weapon-panel button {
+  background: none;
+  color: #b9c6ac;
+  border: 1px solid #d6d0a733;
+  border-radius: 4px;
+  font-size: 9px;
+  padding: 6px;
+  margin-left: 10px;
+}
+.ultimate-desktop {
+  position: absolute;
+  right: 39px;
+  bottom: 112px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  border: 1px solid #e4cf9a66;
+  background: #21463766;
+  padding: 10px 13px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.ultimate-desktop small {
+  color: #dfca97;
+}
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff4cfbb;
+  font-size: 18px;
+  text-shadow: 0 0 5px #244137;
+  pointer-events: none;
+}
+.crosshair.scoped {
+  border: 1px solid #ffe7b577;
+  border-radius: 50%;
+  width: 180px;
+  height: 180px;
+  display: grid;
+  place-items: center;
+}
+.buffs {
+  position: absolute;
+  left: 40px;
+  bottom: 164px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 260px;
+}
+.buffs span {
+  font-size: 9px;
+  border: 1px solid #cad8a944;
+  border-radius: 4px;
+  background: #26463288;
+  padding: 5px 7px;
+  color: #d1dcae;
+}
+.boss {
+  position: absolute;
+  top: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 330px;
+  color: #ffe1ba;
+  text-align: center;
+  font-size: 11px;
+}
+.boss > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  letter-spacing: 1px;
+}
+.boss span {
+  font-size: 9px;
+  color: #e8d2a8;
+}
+.boss > div:nth-child(2) {
+  height: 5px;
+  background: #493c3488;
+}
+.boss i {
+  display: block;
+  height: 100%;
+  background: #c76d50;
+  transition: width 0.15s;
+}
+.boss small {
+  display: block;
+  margin-top: 7px;
+  font-size: 9px;
+}
+.pit-meter {
+  position: absolute;
+  bottom: 202px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 210px;
+  text-align: center;
+  background: #193c31bb;
+  padding: 13px;
+  border: 1px solid #d6b47777;
+  border-radius: 4px;
+}
+.pit-meter strong {
+  font-size: 11px;
+  color: #e8c892;
+  font-weight: 500;
+}
+.pit-meter > div {
+  height: 8px;
+  position: relative;
+  background: #677557;
+  margin-top: 10px;
+}
+.pit-meter i {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  background: #d59359;
+  z-index: 1;
+}
+.pit-meter span {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  background: #e3cc85aa;
+  z-index: 2;
+  pointer-events: none;
+  border-inline: 1px solid #fff1c8;
+}
+.pit-meter.perfect {
+  border-color: #ffe5a1;
+  box-shadow: 0 0 25px #ecd49344;
+}
+.pit-meter.perfect strong {
+  color: #ffe4a0;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: #102a25b5;
+  backdrop-filter: blur(9px);
+  display: grid;
+  place-items: center;
+  z-index: 10;
+  padding: 20px;
+}
+.modal {
+  position: relative;
+  background: #243f34;
+  border: 1px solid #d9c08a66;
+  padding: 35px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 100px #0c241e66;
+  border-radius: 6px;
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #d8c18c44 transparent;
+}
+.close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+}
+.modal h2 {
+  font:
+    25px/1.5 Georgia,
+    "Songti SC",
+    serif;
+  color: #eddbad;
+  margin: 15px 0 20px;
+}
+.modal p {
+  font-size: 11px;
+  line-height: 2.1;
+  color: #c3ceba;
+}
+.modal .primary {
+  margin-top: 24px;
+  width: 100%;
+}
+.modal > .secondary {
+  margin: 18px auto 0;
+}
+.modal > small {
+  display: block;
+  text-align: center;
+  color: #a7b69f;
+  font-size: 9px;
+  margin-top: 18px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.medal {
+  width: 65px;
+  height: 65px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d8bf7d;
+  border-radius: 50%;
+  color: #e4c586;
+  margin-bottom: 23px;
+}
+.setting-list label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 11px;
+  padding: 14px 0;
+  border-bottom: 1px solid #ffffff18;
+}
+.pill {
+  background: #d4bd83;
+  color: #294132;
+  border: 0;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 10px;
+  min-width: 59px;
+}
+input[type="range"] {
+  accent-color: #dfc48c;
+  width: 140px;
+}
+select {
+  color: #e8d9b2;
+  background: #304d3f;
+  border: 1px solid #dac99b44;
+  border-radius: 4px;
+  padding: 5px;
+  font-size: 10px;
+}
+.guide b {
+  color: #e1cb96;
+  font-weight: 500;
+}
+.guide p {
+  border-bottom: 1px solid #d6d8b91a;
+  padding-bottom: 12px;
+}
+.level-list {
+  display: grid;
+  gap: 9px;
+}
+.level-list > button {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #bfc4a52a;
+  padding: 14px 16px;
+  background: #1c392d55;
+  text-align: left;
+  border-radius: 4px;
+}
+.level-list .selected {
+  border-color: #d9bc7e;
+  background: #bda06b18;
+}
+.level-number {
+  font: 26px Georgia;
+  color: #d7bf88;
+}
+.level-list b {
+  font:
+    16px Georgia,
+    "Songti SC",
+    serif;
+  letter-spacing: 2px;
+}
+.level-list small {
+  display: block;
+  font-size: 9px;
+  color: #aabd9d;
+  margin-top: 7px;
+}
+.level-list small span {
+  color: #d9bd81;
+  margin-left: 15px;
+  font-size: 8px;
+}
+.level-list svg {
+  margin-left: auto;
+  color: #d5bf8c;
+}
+.loading {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #f0dca9;
+  background: #244535ee;
+  border: 1px solid #d6bd7f55;
+  border-radius: 7px;
+  padding: 32px 44px;
+  z-index: 9;
+}
+.loading p {
+  font-size: 13px;
+  white-space: nowrap;
+  letter-spacing: 2px;
+}
+.loading small {
+  color: #b4c5a6;
+  font-size: 9px;
+}
+.loading-line {
+  height: 3px;
+  background: linear-gradient(90deg, #33543b, #e4ca91, #33543b);
+  background-size: 200% 100%;
+  animation: loading 1s infinite;
+  margin: 19px 0;
+}
+.storage-warning {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: #f2ca94;
+  z-index: 15;
+  background: #243b2e;
+  padding: 6px 10px;
+  max-width: 95vw;
+}
+.touch {
+  display: none;
+}
+@keyframes loading {
+  to {
+    background-position: 200% 0;
+  }
+}
+@media (max-height: 820px) and (min-width: 801px) {
+  .mission h1 em {
+    display: inline;
+    margin-left: 14px;
+    font-size: 33px;
+  }
+  .mission {
+    width: 253px;
+  }
+  .intro {
+    left: 350px;
+    bottom: 124px;
+  }
+  .intro h2 {
+    font-size: 36px;
+  }
+  .word-slots {
+    margin: 15px 0;
+  }
+  .intro-kicker {
+    font-size: 8px;
+  }
+  .intro p {
+    font-size: 10px;
+  }
+  .intro-buttons {
+    gap: 13px;
+  }
+  .primary {
+    padding: 13px 20px;
+  }
+}
+@media (max-width: 1100px) {
+  .keyboard {
+    gap: 8px;
+  }
+  .keyboard span:last-child {
+    display: none;
+  }
+  .chapter {
+    gap: 10px;
+    font-size: 10px;
+  }
+  .inventory {
+    width: 201px;
+  }
+  .mission {
+    width: 239px;
+  }
+  .goal b {
+    font-size: 12px;
+  }
+  .sound-note small {
+    font-size: 7px;
+  }
+}
+@media (pointer: coarse),
+  (max-width: 800px),
+  (max-height: 540px) and (max-width: 1000px) {
+  .keyboard {
+    display: none;
+  }
+  .touch {
+    display: block;
+    opacity: var(--control-opacity);
+  }
+  .joystick {
+    position: absolute;
+    bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    left: 29px;
+    width: 110px;
+    height: 110px;
+    border: 1px solid #f7eac455;
+    border-radius: 50%;
+    background: #203e3266;
+    touch-action: none;
+    display: grid;
+    place-items: center;
+    user-select: none;
+    backdrop-filter: blur(3px);
+  }
+  .joystick > div {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid #e9d29c99;
+    background: #d2c69e55;
+    pointer-events: none;
+  }
+  .joystick > svg {
+    width: 99px;
+    height: 99px;
+    opacity: 0.25;
+    pointer-events: none;
+  }
+  .joystick-left .joystick {
+    bottom: 36%;
+  }
+  .touch-actions {
+    position: absolute;
+    right: 18px;
+    bottom: calc(83px + env(safe-area-inset-bottom, 0px));
+    width: 198px;
+    height: 164px;
+    transform: scale(var(--button-scale));
+    transform-origin: bottom right;
+    user-select: none;
+    pointer-events: none;
+  }
+  .touch-actions button {
+    position: absolute;
+    width: 55px;
+    height: 55px;
+    border: 1px solid #eedbad88;
+    border-radius: 50%;
+    background: #243e34bb;
+    backdrop-filter: blur(5px);
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    touch-action: none;
+    padding: 4px;
+    pointer-events: auto;
+  }
+  .touch-actions svg {
+    width: 17px;
+    height: 17px;
+  }
+  .touch-actions small {
+    font-size: 8px;
+  }
+  .sprint-action {
+    left: 0;
+    bottom: 8px;
+  }
+  .shoot-action {
+    right: 0;
+    bottom: 8px;
+  }
+  .touch-actions .jump-action {
+    right: 9px;
+    top: 9px;
+    width: 62px;
+    height: 62px;
+  }
+  .interact-action {
+    left: 67px;
+    bottom: 0;
+  }
+  .touch-actions .burst-action {
+    left: 54px;
+    top: 8px;
+    width: 52px;
+    height: 52px;
+    border-color: #eed390;
+  }
+  .swap .sprint-action {
+    left: 67px;
+    bottom: 0;
+  }
+  .swap .interact-action {
+    left: 0;
+    bottom: 8px;
+  }
+  .touch-actions button:disabled {
+    background: #294039aa;
+    border-color: #73876b;
+    opacity: 0.5;
+  }
+  .weapon-panel {
+    bottom: 82px;
+    left: 160px;
+    gap: 5px;
+  }
+  .weapon-panel > svg {
+    display: none;
+  }
+  .weapon-panel b {
+    font-size: 10px;
+  }
+  .weapon-panel small {
+    font-size: 8px;
+  }
+  .weapon-panel button {
+    display: none;
+  }
+  .ultimate-desktop {
+    display: none;
+  }
+  .journey-note {
+    bottom: 275px;
+    max-width: 90vw;
+  }
+  .buffs {
+    left: 28px;
+    bottom: 220px;
+  }
+  .pit-meter {
+    bottom: 345px;
+  }
+  .boss {
+    top: 115px;
+  }
+  .mission,
+  .inventory {
+    pointer-events: none;
+  }
+  .quick-tools {
+    pointer-events: auto;
+  }
+}
+@media (max-width: 800px) {
+  header {
+    height: 77px;
+    margin: 0 20px;
+  }
+  .brand {
+    font-size: 18px;
+    letter-spacing: 2px;
+    gap: 8px;
+  }
+  .brand svg {
+    width: 24px;
+  }
+  .brand small {
+    font-size: 6px;
+    letter-spacing: 2px;
+  }
+  .chapter {
+    display: none;
+  }
+  nav {
+    gap: 6px;
+  }
+  nav button {
+    width: 29px;
+    height: 29px;
+  }
+  .fullscreen {
+    display: none;
+  }
+  .mission {
+    top: 103px;
+    left: 21px;
+    width: 210px;
+  }
+  .mission h1 {
+    font-size: 19px;
+    margin: 12px 0;
+  }
+  .mission h1 em {
+    font-size: 32px;
+    display: inline;
+    margin-left: 12px;
+  }
+  .mission > p {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+  .eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.7px;
+  }
+  .eyebrow .stars {
+    font-size: 6px;
+  }
+  .divider {
+    margin: 15px 0;
+  }
+  .goal {
+    font-size: 9px;
+    gap: 6px;
+  }
+  .goal b {
+    font-size: 12px;
+    padding: 5px 8px;
+    letter-spacing: 1px;
+  }
+  .word-slots {
+    margin: 14px 0;
+    gap: 5px;
+    max-width: 210px;
+  }
+  .word-slots > span {
+    width: 27px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .tasks {
+    gap: 10px;
+    margin: 13px 0;
+  }
+  .tasks > div {
+    font-size: 9px;
+  }
+  .tasks i {
+    width: 15px;
+    height: 15px;
+  }
+  .tasks span {
+    font-size: 9px;
+  }
+  .peace {
+    font-size: 7px;
+  }
+  .inventory {
+    right: 17px;
+    top: 104px;
+    width: 120px;
+    padding: 12px;
+  }
+  .inventory-title {
+    font-size: 11px;
+  }
+  .inventory-title small,
+  .inventory-title svg {
+    display: none;
+  }
+  .bag {
+    padding: 9px 0;
+    border: 0;
+    gap: 5px;
+    margin: 9px 0 13px;
+  }
+  .bag svg {
+    width: 17px;
+  }
+  .bag b {
+    font-size: 8px;
+  }
+  .bag small {
+    display: none;
+  }
+  .altitude {
+    font-size: 8px;
+  }
+  .altitude b {
+    font-size: 21px;
+  }
+  .elevation {
+    font-size: 7px;
+    gap: 3px;
+  }
+  .elevation svg {
+    display: none;
+  }
+  .resource {
+    font-size: 8px;
+    gap: 4px;
+    margin-top: 11px;
+  }
+  .resource b {
+    font-size: 8px;
+    width: 16px;
+  }
+  .quick-tools {
+    gap: 5px;
+    margin-top: 13px;
+  }
+  .quick-tools button {
+    width: 25px;
+    height: 25px;
+    padding: 4px;
+  }
+  .compass {
+    top: 85px;
+    font-size: 8px;
+    gap: 16px;
+  }
+  .intro {
+    left: 24px;
+    bottom: 125px;
+    max-width: 320px;
+  }
+  .intro h2 {
+    font-size: 33px;
+    line-height: 1.5;
+    margin: 12px 0;
+  }
+  .intro-kicker {
+    font-size: 8px;
+  }
+  .intro p {
+    font-size: 10px;
+    margin-bottom: 17px;
+  }
+  .intro > small {
+    font-size: 8px;
+  }
+  .intro-buttons {
+    gap: 18px;
+  }
+  .intro .primary {
+    font-size: 11px;
+    padding: 14px 20px;
+    gap: 25px;
+  }
+  .intro .secondary {
+    font-size: 10px;
+  }
+  .intro h2 {
+    letter-spacing: 3px;
+  }
+  footer {
+    left: 20px;
+    right: 20px;
+    height: 61px;
+  }
+  .sound-note {
+    font-size: 10px;
+  }
+  .sound-note small {
+    font-size: 7px;
+  }
+  .help {
+    font-size: 9px;
+  }
+  .sound-bars {
+    font-size: 12px;
+  }
+  .modal {
+    padding: 31px 24px;
+  }
+  .modal h2 {
+    font-size: 23px;
+  }
+  .journey-note {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+  .journey-note button {
+    font-size: 10px;
+    padding: 9px 12px;
+  }
+  .journey-note .toast {
+    font-size: 10px;
+    padding: 6px 9px;
+  }
+  .buffs {
+    max-width: 140px;
+    gap: 4px;
+  }
+  .buffs span {
+    font-size: 8px;
+  }
+  .boss {
+    top: 380px;
+    width: 270px;
+  }
+  .boss small {
+    font-size: 8px;
+  }
+  .pit-meter {
+    width: 190px;
+  }
+  .modal .eyebrow {
+    font-size: 8px;
+  }
+  .setting-list label {
+    font-size: 10px;
+  }
+  .level-list > button {
+    padding: 12px;
+  }
+  .vignette {
+    background:
+      linear-gradient(90deg, #102e2488, transparent 90%),
+      linear-gradient(0deg, #112f28aa, transparent 50%, #1e3a3277);
+  }
+}
+@media (max-width: 380px) {
+  .mission {
+    width: 183px;
+  }
+  .mission > p {
+    font-size: 8px;
+  }
+  .goal b {
+    font-size: 11px;
+  }
+  .inventory {
+    width: 110px;
+    right: 12px;
+  }
+  .mission {
+    left: 17px;
+  }
+  .touch-actions {
+    right: 12px;
+    transform: scale(calc(var(--button-scale) * 0.86));
+  }
+  .joystick {
+    left: 18px;
+    width: 99px;
+    height: 99px;
+  }
+  .intro-buttons {
+    gap: 11px;
+  }
+  .intro .primary {
+    gap: 15px;
+  }
+  .boss {
+    top: 363px;
+  }
+}
+@media (max-height: 660px) and (min-width: 801px) {
+  .mission {
+    top: 111px;
+  }
+  .inventory {
+    top: 111px;
+  }
+  .mission h1 {
+    margin: 10px 0;
+  }
+  .mission h1 em {
+    font-size: 28px;
+  }
+  .divider {
+    margin: 13px 0;
+  }
+  .tasks {
+    gap: 8px;
+  }
+  .intro {
+    bottom: 106px;
+  }
+  .intro h2 {
+    font-size: 29px;
+  }
+  .intro p {
+    font-size: 9px;
+  }
+  .intro > small {
+    font-size: 7px;
+  }
+  .word-slots > span {
+    height: 29px;
+    width: 28px;
+    font-size: 15px;
+  }
+  .mission > p {
+    font-size: 9px;
+  }
+  .boss {
+    top: 151px;
+  }
+  .journey-note {
+    bottom: 100px;
+  }
+  .buffs {
+    bottom: 151px;
+  }
+}
+@media (max-height: 540px) and (pointer: coarse),
+  (max-height: 540px) and (max-width: 1000px) {
+  main {
+    min-height: 360px;
+  }
+  .mission .tasks,
+  .mission .peace,
+  .mission > p,
+  .mission .divider,
+  .inventory .bag,
+  .inventory .inventory-title,
+  .inventory .elevation {
+    display: none;
+  }
+  .mission {
+    top: 88px;
+    width: 180px;
+  }
+  .mission h1 {
+    font-size: 16px;
+    margin: 5px 0;
+  }
+  .mission h1 em {
+    font-size: 25px;
+  }
+  .word-slots {
+    margin: 10px 0;
+  }
+  .inventory {
+    top: 90px;
+    padding: 10px;
+  }
+  .resource {
+    margin-top: 8px;
+  }
+  .intro {
+    left: 240px;
+    bottom: 78px;
+  }
+  .intro h2 {
+    font-size: 28px;
+  }
+  .intro > small,
+  .intro p {
+    display: none;
+  }
+  .intro-kicker {
+    margin-bottom: 8px;
+  }
+  .joystick {
+    bottom: 65px;
+    width: 90px;
+    height: 90px;
+  }
+  .touch-actions {
+    bottom: 64px;
+    transform: scale(calc(var(--button-scale) * 0.82));
+  }
+  .journey-note {
+    bottom: 80px;
+    max-width: 300px;
+  }
+  .pit-meter {
+    bottom: 175px;
+  }
+  .weapon-panel {
+    bottom: 72px;
+    left: 142px;
+  }
+  .buffs {
+    bottom: 170px;
+  }
+  .boss {
+    top: 89px;
+    width: 260px;
+  }
+  .compass {
+    display: none;
+  }
+  footer {
+    height: 46px;
+  }
+  .modal {
+    max-height: calc(100dvh - 24px);
+  }
+}
+@media (pointer: coarse),
+  (max-width: 800px),
+  (max-height: 540px) and (max-width: 1000px) {
+  .weapon-panel {
+    left: 25px;
+    bottom: 222px;
+  }
+  .buffs {
+    bottom: 266px;
+  }
+  .touch-actions .sprint-action {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(#294c3e, #294c3e) padding-box,
+      conic-gradient(#d4dfaa var(--stamina-angle), #72806a55 0) border-box;
+  }
+  .touch-actions .burst-action {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(#294539, #294539) padding-box,
+      conic-gradient(#ebcb85 var(--energy-angle), #72806a55 0) border-box;
+  }
+}
+@media (max-height: 540px) and (pointer: coarse),
+  (max-height: 540px) and (max-width: 1000px) {
+  .weapon-panel {
+    left: 143px;
+    bottom: 69px;
+  }
+  .buffs {
+    bottom: 166px;
+  }
+}
+
+@media (max-height: 540px) and (max-width: 1000px) {
+  header {
+    height: 66px;
+    margin: 0 24px;
+  }
+  .brand {
+    font-size: 19px;
+  }
+  .chapter {
+    display: none;
+  }
+  .mission {
+    top: 82px;
+    left: 25px;
+  }
+  .inventory {
+    top: 82px;
+    right: 24px;
+  }
+  .intro {
+    bottom: 65px;
+  }
+  .joystick-left .joystick {
+    bottom: 65px;
+  }
+}
+.death-notice {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 47%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 320px;
+  max-width: 88vw;
+  padding: 20px 24px;
+  background: #352e25b8;
+  backdrop-filter: blur(3px);
+  border: 1px solid #c8876477;
+  border-radius: 6px;
+  pointer-events: none;
+}
+.death-notice strong {
+  font:
+    20px Georgia,
+    "Songti SC",
+    serif;
+  color: #f4d3af;
+  line-height: 1.6;
+}
+.death-notice p {
+  font-size: 12px;
+  color: #e2c29e;
+}
+.death-notice small {
+  font-size: 10px;
+  color: #c3caa7;
+}
+.climb-notice {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 85vw;
+  padding: 14px 20px;
+  background: #234738bb;
+  border: 1px solid #e5c98c66;
+  border-radius: 5px;
+  color: #f0d8a5;
+  pointer-events: none;
+}
+.climb-notice span {
+  font-size: 10px;
+  width: 100%;
+  text-align: center;
+  color: #c8d0b3;
+}
+.chase-mode .mission,
+.chase-mode .inventory,
+.chase-mode .compass,
+.chase-mode .buffs,
+.chase-mode .weapon-panel,
+.chase-mode .ultimate-desktop,
+.chase-mode .journey-note,
+.chase-mode .boss,
+.chase-mode .crosshair {
+  display: none;
+}
+.chase-hud {
+  position: absolute;
+  top: 116px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 410px;
+  max-width: 90vw;
+  text-align: center;
+  padding: 19px 28px;
+  background: #253b2ed4;
+  border: 1px solid #e3c08c66;
+  border-radius: 6px;
+  color: #e9d5a9;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+.chase-hud .eyebrow {
+  justify-content: space-between;
+}
+.chase-hud .eyebrow span {
+  background: none;
+  width: auto;
+  height: auto;
+  font-size: 9px;
+}
+.chase-timer {
+  font: 38px Georgia;
+  letter-spacing: 5px;
+  margin: 13px 0;
+}
+.chase-progress {
+  height: 3px;
+  background: #aeb28c33;
+}
+.chase-progress i {
+  display: block;
+  height: 100%;
+  background: #dfbe80;
+}
+.chase-hud h2 {
+  font:
+    25px Georgia,
+    "Songti SC",
+    serif;
+  letter-spacing: 3px;
+  margin: 17px 0 9px;
+}
+.chase-hud p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #d3d4b9;
+}
+.chase-hud small {
+  font-size: 9px;
+  color: #bdc7a7;
+}
+.chase-hud.turn-ready {
+  border-color: #ffe3a0;
+  box-shadow: 0 0 35px #e9c17844;
+}
+.chase-hud.turn-ready h2 {
+  color: #ffe39e;
+}
+.chase-countdown {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translate(-50%, -50%);
+  font: 86px Georgia;
+  color: #ffe6b3;
+  text-shadow: 0 3px 35px #334a29;
+}
+.chase-turn-buttons {
+  position: absolute;
+  left: 50%;
+  bottom: 112px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  max-width: 95vw;
+}
+.chase-turn-buttons button {
+  min-width: 113px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 13px;
+  background: #35513fe8;
+  border: 1px solid #e6c78688;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #f1d6a2;
+}
+.chase-turn-buttons button:disabled {
+  opacity: 0.5;
+}
+.chase-mode .shoot-action,
+.chase-mode .interact-action,
+.chase-mode .burst-action,
+.chase-mode .sprint-action {
+  display: none;
+}
+@media (max-width: 800px) {
+  .chase-hud {
+    top: 103px;
+    width: 335px;
+    padding: 17px 19px;
+  }
+  .chase-hud h2 {
+    font-size: 24px;
+  }
+  .chase-hud p {
+    font-size: 10px;
+  }
+  .chase-turn-buttons {
+    bottom: 260px;
+    gap: 10px;
+  }
+  .chase-turn-buttons button {
+    min-width: 104px;
+    font-size: 11px;
+    padding: 14px 10px;
+  }
+  .chase-turn-buttons kbd {
+    display: none;
+  }
+  .chase-turn-buttons .chase-jump {
+    display: none;
+  }
+  .climb-notice {
+    top: 45%;
+    width: 300px;
+  }
+  .death-notice {
+    top: 49%;
+  }
+}
+@media (max-height: 540px) and (max-width: 1000px) {
+  .chase-hud {
+    top: 76px;
+    width: 360px;
+    padding: 10px 17px;
+  }
+  .chase-hud .chase-timer {
+    font-size: 24px;
+    margin: 7px 0;
+  }
+  .chase-hud h2 {
+    font-size: 21px;
+    margin: 10px 0 5px;
+  }
+  .chase-hud p {
+    font-size: 9px;
+    margin: 6px 0;
+  }
+  .chase-hud small {
+    font-size: 8px;
+  }
+  .chase-turn-buttons {
+    bottom: 63px;
+  }
+  .chase-turn-buttons .chase-jump {
+    display: none;
+  }
+  .chase-countdown {
+    left: 25%;
+    top: 50%;
+    font-size: 65px;
+  }
+  .climb-notice {
+    top: 36%;
+  }
+  .death-notice {
+    top: 45%;
+  }
+}
+
+/* 竖屏提示覆盖触摸控件，模拟同步暂停，旋转后自动恢复。 */
+.rotate-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 28px;
+  text-align: center;
+  background: #122e2af5;
+  color: #f1d6a2;
+}
+.rotate-prompt p {
+  line-height: 1.8;
+}
+.rotate-prompt button {
+  max-width: 320px;
+}
+@media (pointer: coarse) {
+  header,
+  footer {
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+  }
+  .touch {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* 追逐提示固定在左侧边缘，中央视野留给路线与障碍。覆盖窄屏旧布局。 */
+.chase-mode .chase-hud {
+  top: 78px;
+  left: 16px;
+  transform: none;
+  width: 216px;
+  max-width: 30vw;
+  padding: 9px 12px;
+  text-align: left;
+  background: #16221ac7;
+  backdrop-filter: none;
+}
+.chase-mode .chase-hud .eyebrow,
+.chase-mode .chase-hud small {
+  display: none;
+}
+.chase-mode .chase-hud .chase-timer {
+  font-size: 20px;
+  letter-spacing: 2px;
+  margin: 0 0 6px;
+}
+.chase-mode .chase-hud h2 {
+  font-size: 16px;
+  letter-spacing: 1px;
+  margin: 8px 0 4px;
+}
+.chase-mode .chase-hud p {
+  font-size: 10px;
+  margin: 0;
+  line-height: 1.5;
+}
+.chase-mode .chase-countdown {
+  top: 86px;
+  left: 50%;
+  font-size: 36px;
+}
+.chase-mode .chase-turn-buttons {
+  bottom: 20px;
+  gap: 8px;
+}
+.chase-mode .chase-turn-buttons button {
+  min-width: 74px;
+  padding: 9px 11px;
+  font-size: 11px;
+}
+@media (max-height: 540px) {
+  .chase-mode .chase-hud {
+    top: 72px;
+    left: 12px;
+    width: 174px;
+    padding: 7px 9px;
+  }
+  .chase-mode .chase-hud .chase-timer {
+    font-size: 17px;
+  }
+  .chase-mode .chase-hud h2 {
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  .chase-mode .chase-hud p {
+    font-size: 9px;
+  }
+  .chase-mode .chase-countdown {
+    top: 78px;
+  }
+}
+.chase-mode footer .keyboard,
+.chase-mode footer .sound-note {
+  display: none;
+}
+.chase-stamina {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+  font-size: 9px;
+  color: #cad6bd;
+}
+.chase-stamina meter {
+  width: 54px;
+  height: 7px;
+}
+.chase-mode .chase-turn-buttons .chase-sprint.active {
+  border-color: #99dec2;
+  background: #365b4a;
+}
