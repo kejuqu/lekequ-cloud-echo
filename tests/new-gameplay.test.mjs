@@ -68,13 +68,13 @@ test("weapon pickup needs no interaction and cannot farm pistol ammo", () => {
   place(sim, 3, -2);
   frames(sim, 1);
   assert.ok(sim.state.bow);
-  place(sim, 8, 2);
+  place(sim, sim.level.gates[0] + 4, 2);
   frames(sim, 1);
   assert.ok(sim.state.pistol);
-  assert.equal(sim.state.ammo, 12);
+  assert.equal(sim.state.ammo, 36);
   sim.shoot();
   frames(sim, 15);
-  assert.equal(sim.state.ammo, 11);
+  assert.equal(sim.state.ammo, 35);
 });
 test("spitters exist in all requested levels and emit moving projectiles", () => {
   for (const id of [3, 4, 5]) {
@@ -431,7 +431,7 @@ test("shot events distinguish bowstrings from pistol gunfire", () => {
   bow.shoot();
   assert.equal(bow.events.find((event) => event.kind === "shot")?.index, 0);
   const pistol = make(4);
-  place(pistol, 8, 2);
+  place(pistol, pistol.level.gates[0] + 4, 2);
   frames(pistol, 1);
   pistol.shoot();
   assert.equal(pistol.events.find((event) => event.kind === "shot")?.index, 1);

@@ -2064,3 +2064,727 @@ select {
   border-color: #99dec2;
   background: #365b4a;
 }
+
+/* The menu has its own vista; gameplay panels appear only after departure. */
+.menu-mode .mission,
+.menu-mode .inventory,
+.menu-mode .compass,
+.menu-mode .keyboard {
+  display: none;
+}
+.menu-mode .intro {
+  top: 29%;
+  bottom: auto;
+  width: 440px;
+}
+.menu-mode .intro h2 {
+  font-size: clamp(32px, 3.8vw, 60px);
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+}
+.menu-mode .vignette {
+  background:
+    linear-gradient(90deg, #183f35e6, #183f3550 42%, transparent 70%),
+    linear-gradient(0deg, #183f3577, transparent 30%);
+}
+.menu-mode .intro p {
+  color: #e0e7ce;
+}
+.victory-modal {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  width: min(640px, 94vw);
+  background: radial-gradient(ellipse at 50% 0, #687449, #203e33 65%);
+  border: 1px solid #f0cd7b;
+  box-shadow:
+    0 0 100px #e8bf5744,
+    0 35px 100px #0a201b99;
+}
+.victory-modal .medal {
+  margin: 0 auto 22px;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(145deg, #fff0ad, #d5a84e);
+  color: #4d4d2d;
+  border: 5px double #fff0b0;
+  box-shadow: 0 0 45px #edc86d66;
+  animation: medal-arrive 0.7s ease-out both;
+}
+.victory-modal h2 {
+  font-size: clamp(38px, 5vw, 64px);
+  color: #fff0b0;
+  margin: 14px 0;
+  letter-spacing: 0.08em;
+}
+.victory-title {
+  color: #eed39b;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+}
+.victory-modal .victory-message {
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 18px auto;
+  max-width: 400px;
+}
+.victory-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 20px 0;
+  border-block: 1px solid #e4c98a44;
+  margin-bottom: 18px;
+}
+.victory-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.victory-stats div + div {
+  border-left: 1px solid #e4c98a33;
+}
+.victory-stats b {
+  color: #fff0bb;
+  font:
+    28px Georgia,
+    serif;
+}
+.victory-stats small {
+  font: 12px sans-serif;
+}
+.victory-stats span {
+  font-size: 11px;
+  color: #bfcdb8;
+}
+.victory-peaks {
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+  margin: 0 0 24px;
+}
+.victory-peaks span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #8a9989;
+  font-size: 11px;
+}
+.victory-peaks .achieved {
+  color: #f0d18a;
+}
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti i {
+  position: absolute;
+  top: -20px;
+  left: calc(var(--i) * 3.7%);
+  width: 6px;
+  height: 12px;
+  background: #efd185;
+  animation: celebrate 3.5s ease-out both;
+  animation-delay: calc(var(--i) * 0.055s);
+}
+.confetti i:nth-child(3n) {
+  background: #97cbb6;
+}
+.confetti i:nth-child(2n) {
+  background: #e4a582;
+  width: 8px;
+  height: 5px;
+}
+@keyframes celebrate {
+  to {
+    transform: translate(35px, 650px) rotate(520deg);
+    opacity: 0;
+  }
+}
+@keyframes medal-arrive {
+  from {
+    transform: scale(0.5) rotate(-15deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (max-width: 800px) and (orientation: portrait) {
+  .menu-mode .intro {
+    top: auto;
+    bottom: 15%;
+    width: calc(100% - 40px);
+    left: 20px;
+  }
+  .menu-mode .intro h2 {
+    font-size: 34px;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .menu-mode .intro {
+    top: 24%;
+    left: max(24px, env(safe-area-inset-left));
+    width: 350px;
+  }
+  .menu-mode .intro h2 {
+    font-size: 30px;
+    margin: 12px 0;
+  }
+  .menu-mode .intro p {
+    display: block;
+    font-size: 11px;
+    margin: 10px 0;
+  }
+  .menu-mode .intro-buttons {
+    margin-top: 12px;
+  }
+  .menu-mode .intro .primary {
+    padding: 13px 22px;
+    min-height: 44px;
+  }
+  .victory-modal {
+    padding: 18px 28px;
+    max-height: 94dvh;
+    overflow-y: auto;
+  }
+  .victory-modal .medal {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 8px;
+  }
+  .victory-modal .medal svg {
+    width: 30px;
+  }
+  .victory-modal h2 {
+    font-size: 32px;
+    margin: 6px 0;
+  }
+  .victory-title {
+    font-size: 14px;
+  }
+  .victory-modal .victory-message {
+    margin: 8px auto;
+    font-size: 12px;
+  }
+  .victory-stats {
+    padding: 10px 0;
+    margin-bottom: 8px;
+  }
+  .victory-stats b {
+    font-size: 22px;
+  }
+  .victory-peaks {
+    margin-bottom: 10px;
+  }
+  .victory-modal .primary {
+    margin-top: 8px;
+    min-height: 44px;
+    padding: 10px;
+  }
+  .victory-modal > .secondary {
+    margin-top: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti {
+    display: none;
+  }
+  .victory-modal .medal {
+    animation: none;
+  }
+}
+.menu-mode .intro {
+  width: 480px;
+}
+.menu-mode .intro h2 {
+  font-size: clamp(30px, 3.2vw, 48px);
+}
+main[data-level="1"] .weapon-panel {
+  display: none;
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  main {
+    min-height: 0;
+  }
+  .inventory {
+    top: 78px;
+    right: max(18px, env(safe-area-inset-right));
+    width: 155px;
+    padding: 10px;
+  }
+  .inventory .quick-tools,
+  .inventory .resource,
+  .inventory .bag {
+    display: none;
+  }
+  .inventory .altitude {
+    margin: 0 0 5px;
+  }
+  .inventory .altitude b {
+    font-size: 20px;
+  }
+  .menu-mode .intro {
+    width: 370px;
+  }
+  .menu-mode .intro h2 {
+    font-size: 30px;
+  }
+  .journey-note {
+    bottom: 55px;
+  }
+  .boss {
+    top: 76px;
+    width: 240px;
+  }
+  .mission {
+    width: 168px;
+  }
+  .mission .goal {
+    display: none;
+  }
+  .word-slots {
+    gap: 4px;
+  }
+  .word-slots > span {
+    width: 25px;
+    height: 28px;
+    font-size: 16px;
+  }
+}
+@media (orientation: landscape) and (max-height: 360px) {
+  header {
+    height: 58px;
+  }
+  .menu-mode .intro {
+    top: 22%;
+  }
+  .menu-mode .intro h2 {
+    font-size: 25px;
+  }
+  .menu-mode .intro p {
+    margin: 5px 0;
+  }
+  .mission,
+  .inventory {
+    top: 65px;
+  }
+  .touch-actions {
+    bottom: 40px;
+    transform: scale(calc(var(--button-scale) * 0.72));
+  }
+  .joystick {
+    bottom: 45px;
+    width: 80px;
+    height: 80px;
+  }
+  .sound-note,
+  footer .keyboard {
+    display: none;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .victory-modal {
+    width: min(600px, 90vw);
+  }
+  .victory-modal .medal {
+    position: absolute;
+    left: 24px;
+    top: 20px;
+    width: 48px;
+    height: 48px;
+  }
+  .victory-modal > .eyebrow {
+    display: none;
+  }
+  .victory-modal .victory-stats {
+    padding: 8px 0;
+  }
+  .victory-modal .victory-peaks {
+    display: none;
+  }
+  .victory-modal > .secondary {
+    padding: 8px;
+  }
+}
+
+/* 山行者：以季节色、深色信息层和留白统一山岳旅程。 */
+main {
+  --season-accent: #e8ce98;
+  --season-muted: #d2decb;
+  --season-shadow: 19 43 36;
+}
+main[data-level="2"] {
+  --season-accent: #bfe0ac;
+  --season-muted: #d0e4d0;
+  --season-shadow: 15 43 35;
+}
+main[data-level="3"] {
+  --season-accent: #f0c18b;
+  --season-muted: #e4d3bc;
+  --season-shadow: 49 36 27;
+}
+main[data-level="4"] {
+  --season-accent: #c3e1ef;
+  --season-muted: #d0dfe8;
+  --season-shadow: 24 39 52;
+}
+main[data-level="5"] {
+  --season-accent: #eed398;
+  --season-muted: #e4ddc7;
+  --season-shadow: 43 39 29;
+}
+.vignette {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(var(--season-shadow) / 0.85),
+      transparent 39%,
+      transparent 72%,
+      rgb(var(--season-shadow) / 0.25)
+    ),
+    linear-gradient(
+      0deg,
+      rgb(var(--season-shadow) / 0.9),
+      transparent 23%,
+      transparent 78%,
+      rgb(var(--season-shadow) / 0.65)
+    );
+}
+header,
+footer {
+  border-color: rgb(255 248 224 / 0.2);
+}
+.brand {
+  color: #fff2d6;
+}
+.brand small,
+.chapter,
+.chapter span:last-child,
+.sound-note small {
+  color: var(--season-muted);
+}
+.brand svg,
+.chapter b,
+.mission h1 em,
+.sound-note,
+.intro-kicker,
+.secondary {
+  color: var(--season-accent);
+}
+nav button,
+.quick-tools button {
+  background: rgb(var(--season-shadow) / 0.62);
+  border-color: rgb(255 255 255 / 0.22);
+}
+button {
+  transition:
+    background-color 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+.primary {
+  background: linear-gradient(120deg, #f2dfb4, var(--season-accent));
+  color: #26352d;
+  border-color: #f5e3bd;
+  border-radius: 6px;
+  box-shadow:
+    0 8px 24px #071b2230,
+    inset 0 1px #fff7dc99;
+}
+.primary:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px #071b2240;
+}
+.inventory {
+  background: rgb(var(--season-shadow) / 0.8);
+  border: 1px solid rgb(255 250 220 / 0.2);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px #11201920;
+}
+.mission > p,
+.tasks > div,
+.peace,
+.bag,
+.inventory-title small,
+.bag small {
+  color: var(--season-muted);
+}
+.word-slots > span {
+  border-color: rgb(234 228 200 / 0.5);
+  color: #e5e6d2;
+  background: rgb(var(--season-shadow) / 0.55);
+}
+.word-slots > span.collected {
+  color: #fff1c7;
+  background: #a9873f55;
+  box-shadow: inset 0 0 12px #e8cb8040;
+  animation: word-arrive 0.45s ease-out;
+}
+@keyframes word-arrive {
+  from {
+    transform: translateY(5px) scale(0.85);
+    opacity: 0.3;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.modal {
+  background: linear-gradient(
+    145deg,
+    rgb(var(--season-shadow) / 0.98),
+    #172d29
+  );
+  border-color: #e7d4a445;
+  border-radius: 14px;
+}
+.level-list button {
+  border-radius: 7px;
+}
+.level-list button.selected {
+  border-color: var(--season-accent);
+  background: rgb(228 211 157 / 0.12);
+}
+.menu-mode .vignette {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(var(--season-shadow) / 0.95),
+      rgb(var(--season-shadow) / 0.64) 30%,
+      transparent 64%
+    ),
+    linear-gradient(0deg, rgb(var(--season-shadow) / 0.75), transparent 30%);
+}
+.menu-mode .intro {
+  left: clamp(28px, 6vw, 96px);
+  top: 23%;
+  bottom: auto;
+  width: 420px;
+  max-width: 42vw;
+}
+.menu-mode .intro h2 {
+  font-size: clamp(50px, 6.2vw, 88px);
+  line-height: 1.15;
+  letter-spacing: 0.14em;
+  margin: 16px 0 12px;
+  color: #fff2d8;
+  text-shadow: 0 3px 24px #10291f33;
+  white-space: nowrap;
+}
+.intro-tagline {
+  font:
+    19px/1.6 "Songti SC",
+    serif;
+  letter-spacing: 0.18em;
+  color: var(--season-accent);
+}
+.menu-mode .intro p {
+  font-size: 12px;
+  line-height: 1.9;
+  margin: 16px 0 21px;
+  color: #e0e7d8;
+}
+.intro-kicker {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+}
+.season-route {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+.season-route button {
+  position: relative;
+  width: 58px;
+  padding: 8px 4px;
+  border: 1px solid #f0e6c42e;
+  border-radius: 6px;
+  background: rgb(var(--season-shadow) / 0.35);
+  color: var(--season-muted);
+}
+.season-route button[aria-pressed="true"] {
+  border-color: var(--season-accent);
+  color: #fff0cc;
+  background: #dbc49220;
+}
+.season-route button span {
+  display: block;
+  font:
+    19px "Songti SC",
+    serif;
+}
+.season-route button small {
+  display: block;
+  font-size: 9px;
+  margin-top: 5px;
+  letter-spacing: 0.12em;
+}
+.season-route button svg {
+  position: absolute;
+  top: 5px;
+  right: 4px;
+}
+.menu-mode .intro > small {
+  color: var(--season-muted);
+  font-size: 9px;
+  margin-top: 14px;
+}
+.sound-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  width: 31px;
+}
+.sound-bars i {
+  width: 3px;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--season-accent);
+}
+.sound-note[data-playing="true"] .sound-bars i {
+  height: 18px;
+  animation: score-wave 0.9s ease-in-out infinite alternate;
+  animation-delay: calc(var(--bar) * -0.17s);
+}
+@keyframes score-wave {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.sound-note small {
+  line-height: 1.5;
+  margin-top: 4px;
+}
+@media (min-width: 801px) and (min-height: 541px) {
+  .mission {
+    padding: 18px;
+    left: 24px;
+    top: 112px;
+    background: linear-gradient(
+      110deg,
+      rgb(var(--season-shadow) / 0.65),
+      rgb(var(--season-shadow) / 0.12)
+    );
+    border-left: 1px solid #e1d5b94a;
+    border-radius: 0 9px 9px 0;
+  }
+}
+@media (max-width: 800px) and (orientation: portrait) {
+  .menu-mode .intro {
+    left: 24px;
+    top: auto;
+    bottom: 92px;
+    width: calc(100% - 48px);
+    max-width: 380px;
+  }
+  .menu-mode .intro h2 {
+    font-size: 60px;
+  }
+  .menu-mode .vignette {
+    background: linear-gradient(
+      0deg,
+      rgb(var(--season-shadow) / 0.98),
+      rgb(var(--season-shadow) / 0.83) 45%,
+      rgb(var(--season-shadow) / 0.08) 85%
+    );
+  }
+  .season-route {
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .season-route button {
+    flex: 1;
+    max-width: 58px;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .menu-mode .intro {
+    left: max(24px, env(safe-area-inset-left));
+    top: 22%;
+    width: 360px;
+    max-width: 48vw;
+  }
+  .menu-mode .intro h2 {
+    font-size: 40px;
+    margin: 8px 0 4px;
+  }
+  .intro-tagline {
+    font-size: 14px;
+  }
+  .menu-mode .intro p {
+    font-size: 10px;
+    line-height: 1.5;
+    margin: 6px 0 12px;
+  }
+  .menu-mode .intro .primary {
+    min-height: 38px;
+    padding: 9px 18px;
+  }
+  .season-route {
+    margin-top: 12px;
+    gap: 6px;
+  }
+  .season-route button {
+    width: 42px;
+    padding: 5px;
+  }
+  .season-route button span {
+    font-size: 15px;
+  }
+  .season-route button small,
+  .menu-mode .intro > small {
+    display: none;
+  }
+}
+@media (orientation: landscape) and (max-height: 390px) {
+  .menu-mode .intro {
+    top: 20%;
+  }
+  .menu-mode .intro h2 {
+    font-size: 34px;
+  }
+  .menu-mode .intro p {
+    display: none;
+  }
+  .menu-mode .intro-buttons {
+    margin-top: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .word-slots > span.collected,
+  .sound-note[data-playing="true"] .sound-bars i {
+    animation: none;
+  }
+  button {
+    transition: none;
+  }
+}
+@media (min-width: 801px) and (min-height: 541px) and (max-height: 700px) {
+  .menu-mode .intro {
+    top: max(104px, 18vh);
+  }
+  .menu-mode .intro h2 {
+    font-size: clamp(56px, 5.4vw, 70px);
+  }
+}
+@media (min-width: 801px) and (min-height: 541px) and (max-height: 600px) {
+  .menu-mode .intro p {
+    display: none;
+  }
+  .menu-mode .intro-buttons {
+    margin-top: 16px;
+  }
+}

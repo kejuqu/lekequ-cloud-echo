@@ -1,7 +1,12 @@
+import { createLuckyCelebration } from "./lucky-celebration";
 import * as T from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { Simulation, type Snapshot } from "./simulation";
 import {
+  LEVELS,
+  weaponPickups,
+  wordDecoys,
+  randomizeWords,
   bladeHeight,
   bladePositions,
   bladeSpan,
@@ -11,6 +16,7 @@ import {
 } from "./levels";
 import type { Save, Settings } from "./rules";
 import { Sound } from "./audio";
+import { createArrowAssets } from "./arrow-projectile";
 import {
   chasePoint,
   CHASE_OBSTACLES,
@@ -23,21 +29,23 @@ import { WATER_GATE } from "./water-timing";
 import { createBossEffects } from "./boss-effects";
 import { createPortal } from "./portal";
 import { createFireWater } from "./fire-water";
-export type GameState = Snapshot;
+export type GameState = Snapshot & { soundtrack: Sound["soundtrack"] };
 /** 创建场景与输入桥接；规则由 Simulation 管理，dispose 负责完整清理。 */
 export function createGame(
   el: HTMLDivElement,
   level: Level,
   save: Save,
-  onState: (s: Snapshot) => void,
+  onState: (s: GameState) => void,
   onSave: () => void,
   onResetRequest: () => void,
 ) {
+  level = randomizeWords(level);
   const sim = new Simulation(level, save, onSave),
     scene = new T.Scene(),
     sound = new Sound();
   let settings = { ...save.settings },
     paused = true,
+    menuView = true,
     disposed = false;
   scene.background = new T.Color(level.sky);
   scene.fog = new T.FogExp2(level.sky, level.id === 2 ? 0.014 : 0.009);
@@ -49,6 +57,8 @@ export function createGame(
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = T.PCFSoftShadowMap;
   renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
   renderer.domElement.setAttribute("aria-label", "可交互的三维山岳场景");
   el.appendChild(renderer.domElement);
   const camera = new T.PerspectiveCamera(53, 1, 0.1, 380);
@@ -271,6 +281,25 @@ export function createGame(
       p.y + scale,
       p.z,
     );
+    if (level.id <= 3) {
+      const colors =
+        level.id === 1
+          ? ["#d9a5aa", "#efc8bb", "#9aa97a"]
+          : level.id === 2
+            ? ["#346e50", "#50865b", "#6b995e"]
+            : ["#be723b", "#d19a4a", "#aa5937"];
+      for (let i = 0; i < 4; i++) {
+        const crown = mesh(
+          new T.IcosahedronGeometry((1.15 - i * 0.1) * scale, 1),
+          mat(colors[i % 3]),
+          p.x + Math.sin(i * 2) * 0.65 * scale,
+          p.y + (2.3 + i * 0.35) * scale,
+          p.z + Math.cos(i * 2) * 0.5 * scale,
+        );
+        crown.scale.y = 1.15;
+      }
+      return;
+    }
     for (let i = 0; i < 3; i++)
       mesh(
         new T.ConeGeometry((1.5 - i * 0.25) * scale, 2.5 * scale, 5),
@@ -347,8 +376,8 @@ export function createGame(
       p.y - 0.03,
       p.z,
     );
-    label("凹坑 · 等金光蹬跳", p.x, p.y + 2, p.z, 4);
-    marker(s - 3, -3, i === 0 ? "浅坑 / 金光时按空格" : "蹬跳 → 高岩点");
+    label("金光时跳跃", p.x, p.y + 2, p.z, 4);
+    marker(s - 3, -3, i === 0 ? "蓄力坑" : "高跳点");
   });
   const bladeBelt = bladeSpan(level);
   for (const [a, b] of level.belts) {
@@ -386,7 +415,7 @@ export function createGame(
     return { group, s, index };
   });
   if (bladeViews.length)
-    marker(bladeBelt![0] - 1, -3, "升降刀阵 · 等刀刃升起再通过", "#efc48a");
+    marker(bladeBelt![0] - 1, -3, "刀刃升起时通过", "#efc48a");
   const checkpointMeshes: T.Mesh[] = [];
   for (const s of level.id === 1
     ? [20, 69]
@@ -430,21 +459,89 @@ export function createGame(
     );
     return { a, halo, y: pos.y };
   });
+  const decoys = wordDecoys(level).map((d) => {
+    const pos = at(d.s, d.lane, 1.25);
+    const material = new T.SpriteMaterial({
+      map: texture(d.text, "transparent", "#fff0b9", 128, 128),
+    });
+    extraMaterials.add(material);
+    const a = new T.Sprite(material);
+    a.position.copy(pos);
+    a.scale.set(1.9, 1.9, 1);
+    scene.add(a);
+    const halo = mesh(
+      new T.TorusGeometry(0.68, 0.025, 5, 30),
+      mat("#ecd68a"),
+      pos.x,
+      pos.y,
+      pos.z,
+    );
+    const bomb = new T.Group();
+    bomb.position.copy(pos);
+    mesh(new T.SphereGeometry(0.45, 16, 12), mat("#222b2b"), 0, 0, 0, bomb);
+    mesh(
+      new T.CylinderGeometry(0.045, 0.045, 0.32, 6),
+      mat("#eeb65f"),
+      0,
+      0.52,
+      0,
+      bomb,
+    );
+    mesh(new T.SphereGeometry(0.11, 8, 6), mat("#ff653a"), 0, 0.7, 0, bomb);
+    scene.add(bomb);
+    bomb.visible = false;
+    return { ...d, a, halo, bomb, y: pos.y };
+  });
   const bagPos = at(level.bag.s, level.bag.lane, 1.2),
     bag = new T.Group();
   bag.position.copy(bagPos);
   scene.add(bag);
-  const scrollMat = new T.MeshStandardMaterial({
-    color: "#ffe0a3",
-    emissive: "#c7a354",
-    emissiveIntensity: 0.35,
-    transparent: true,
-    opacity: 0.8,
-  });
-  box(0, 0, 0, 1.3, 0.8, 0.12, "#e7d3a3", bag);
-  for (const x of [-0.7, 0.7])
-    mesh(new T.CylinderGeometry(0.12, 0.12, 1.05, 8), scrollMat, x, 0, 0, bag);
-  const bagLabel = label(level.idiom, bagPos.x, bagPos.y + 1, bagPos.z, 3.5);
+  const pouch = mesh(
+    new T.SphereGeometry(0.68, 12, 8),
+    mat("#c83236"),
+    0,
+    0,
+    0,
+    bag,
+  );
+  pouch.scale.set(1, 1.05, 0.75);
+  mesh(
+    new T.CylinderGeometry(0.4, 0.21, 0.36, 10),
+    mat("#df4540"),
+    0,
+    0.72,
+    0,
+    bag,
+  );
+  const cord = mesh(
+    new T.TorusGeometry(0.25, 0.055, 6, 16),
+    mat("#ffd477"),
+    0,
+    0.55,
+    0,
+    bag,
+  );
+  cord.rotation.x = Math.PI / 2;
+  for (const x of [-0.26, 0.26]) {
+    const loop = mesh(
+      new T.TorusGeometry(0.18, 0.035, 5, 12),
+      mat("#ffd477"),
+      x,
+      0.55,
+      0.3,
+      bag,
+    );
+    loop.scale.y = 0.6;
+    mesh(
+      new T.CylinderGeometry(0.035, 0.07, 0.38, 6),
+      mat("#ffd477"),
+      x,
+      0.22,
+      0.5,
+      bag,
+    );
+  }
+  const luckyCelebration = createLuckyCelebration(scene);
   const flagPos = at(level.length, 2);
   mesh(
     new T.CylinderGeometry(0.12, 0.17, 7, 7),
@@ -464,7 +561,7 @@ export function createGame(
     flagPos.z,
   );
   const baseFlag = Float32Array.from(flag.geometry.attributes.position.array);
-  label("山顶红旗 · 抵达即成功", flagPos.x, flagPos.y + 7, flagPos.z, 5);
+  label("山顶红旗", flagPos.x, flagPos.y + 7, flagPos.z, 5);
   // Persistent success tag: shown on the summit flag once this peak is conquered.
   const summitTag = label(
     "✓ 登顶成功",
@@ -524,28 +621,30 @@ export function createGame(
     grip.rotation.x = -0.18;
     box(0, -0.08, -0.17, 0.07, 0.16, 0.08, "#b08b4f", group);
     box(0, 0.24, -0.4, 0.055, 0.07, 0.07, "#3e4843", group);
+    box(0, 0.08, -0.85, 0.14, 0.15, 0.65, "#303b3d", group);
+    box(0, 0.05, 0.4, 0.22, 0.3, 0.55, "#685843", group);
+    box(0, -0.24, -0.25, 0.24, 0.42, 0.29, "#3c4948", group);
+    for (let i = 0; i < 5; i++)
+      box(0, 0.17, -0.58 - i * 0.1, 0.18, 0.035, 0.035, "#98a19a", group);
     return group;
   }
-  let bowPickup: T.Group | undefined, pistolPickup: T.Group | undefined;
-  if (level.id > 1) {
-    marker(3, -2, "走近自动拾取弓箭");
-    const p = at(3, -2, 1),
-      bow = bowModel();
-    bow.position.copy(p);
+  const pickups = weaponPickups(level);
+  const bowPickups = pickups.bows.map((p) => {
+    marker(p.s, p.lane, "弓箭");
+    const bow = bowModel();
+    bow.position.copy(at(p.s, p.lane, 1));
     bow.scale.setScalar(1.25);
-    bow.rotation.y = -0.35;
     scene.add(bow);
-    bowPickup = bow;
-  }
-  if (level.id >= 4) {
-    marker(8, 2, "走近自动拾取手枪");
-    const p = at(8, 2, 1),
-      pistol = pistolModel();
-    pistol.position.copy(p);
-    pistol.scale.setScalar(1.35);
-    pistol.rotation.y = -0.55;
-    scene.add(pistol);
-    pistolPickup = pistol;
+    return bow;
+  });
+  let pistolPickup: T.Group | undefined;
+  if (pickups.gun) {
+    const p = pickups.gun;
+    marker(p.s, p.lane, "机关枪");
+    pistolPickup = pistolModel();
+    pistolPickup.position.copy(at(p.s, p.lane, 1));
+    pistolPickup.scale.setScalar(1.35);
+    scene.add(pistolPickup);
   }
   for (const climb of level.climbs) {
     const start = at(climb.start, climb.lane, 0.6),
@@ -557,7 +656,7 @@ export function createGame(
     );
     rope.position.copy(start.clone().add(end).multiplyScalar(0.5));
     rope.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dir.normalize());
-    marker(climb.start, -2, "陡坡必须抓绳 · E 抓绳，W 攀爬");
+    marker(climb.start, -2, "抓绳攀爬");
     box(end.x, end.y, end.z, 0.25, 1.2, 0.3, "#706448");
   }
   for (const s of level.id === 5
@@ -572,7 +671,7 @@ export function createGame(
     const p = at(s, 2, 0);
     box(p.x, p.y + 0.45, p.z, 0.9, 0.8, 0.8, "#786949");
     box(p.x, p.y + 0.9, p.z, 1, 0.12, 0.9, "#a18a59");
-    marker(s, 2, "补给 · 每15秒刷新");
+    marker(s, 2, "补给箱");
   }
   const buffs =
     level.id === 2
@@ -644,7 +743,7 @@ export function createGame(
       5,
     );
     marker(WATER_GATE.s, WATER_GATE.lane, "左侧水闸 · E 引水灭火");
-    marker(59, -2, "E 绳索攀爬 → 悬崖取字");
+    marker(59, -2, "攀绳取字");
     const p = at(62, -4, 2);
     mesh(
       new T.CylinderGeometry(0.045, 0.045, 6, 6),
@@ -713,7 +812,7 @@ export function createGame(
   function enemyView(id: number, kind: string) {
     const g = new T.Group(),
       parts: T.Object3D[] = [];
-    scene.add(g);
+    mountainScenery.add(g);
     if (kind === "spitter") {
       mesh(new T.IcosahedronGeometry(0.8, 1), mat("#756188"), 0, 0, 0, g);
       const mouth = mesh(
@@ -725,7 +824,14 @@ export function createGame(
         g,
       );
       parts.push(mouth);
-      mesh(new T.SphereGeometry(0.28, 8, 6), mat("#f3a56d"), 0, 0.15, -0.7, g);
+      mesh(
+        new T.SphereGeometry(0.28, 20, 14),
+        mat("#f3a56d"),
+        0,
+        0.15,
+        -0.7,
+        g,
+      );
       for (const x of [-0.35, 0.35]) {
         mesh(
           new T.SphereGeometry(0.12, 6, 4),
@@ -846,8 +952,15 @@ export function createGame(
   }
   const player = new T.Group();
   scene.add(player);
-  mesh(new T.CapsuleGeometry(0.3, 0.65, 4, 8), mat("#c6ad7b"), 0, 1, 0, player);
-  mesh(new T.SphereGeometry(0.28, 8, 6), mat("#e5c6a0"), 0, 1.75, 0, player);
+  mesh(
+    new T.CapsuleGeometry(0.3, 0.65, 6, 16),
+    mat("#c6ad7b"),
+    0,
+    1,
+    0,
+    player,
+  );
+  mesh(new T.SphereGeometry(0.28, 20, 14), mat("#e5c6a0"), 0, 1.75, 0, player);
   mesh(new T.ConeGeometry(0.44, 0.25, 7), mat("#766b4c"), 0, 2.02, 0, player);
   box(0, 1.1, 0.34, 0.6, 0.75, 0.3, "#516c50", player);
   box(0, 1.5, 0, 0.65, 0.12, 0.45, "#b35f48", player);
@@ -859,6 +972,48 @@ export function createGame(
     box(-0.45, 1.1, 0, 0.18, 0.65, 0.2, "#c6ad7b", player),
     box(0.45, 1.1, 0, 0.18, 0.65, 0.2, "#c6ad7b", player),
   ];
+  mesh(
+    new T.CylinderGeometry(0.46, 0.47, 0.055, 24),
+    mat("#9b885b"),
+    0,
+    1.91,
+    0,
+    player,
+  );
+  mesh(
+    new T.CylinderGeometry(0.29, 0.32, 0.22, 16),
+    mat("#b39a65"),
+    0,
+    2.03,
+    0,
+    player,
+  );
+  for (const x of [-0.19, 0.19]) {
+    box(x, 1.15, -0.29, 0.065, 0.7, 0.06, "#60513c", player);
+    box(x, 0.79, 0, 0.12, 0.06, 0.65, "#d4b775", player);
+  }
+  box(0, 1.12, 0.51, 0.42, 0.31, 0.08, "#7a905c", player);
+  box(0, 1.2, 0.57, 0.09, 0.12, 0.04, "#dfb779", player);
+  const bedroll = mesh(
+    new T.CylinderGeometry(0.16, 0.16, 0.76, 12),
+    mat("#ac8055"),
+    0,
+    1.58,
+    0.36,
+    player,
+  );
+  bedroll.rotation.z = Math.PI / 2;
+  for (const leg of legs)
+    box(0, -0.29, -0.065, 0.27, 0.16, 0.4, "#3e4039", leg);
+  for (const x of [-0.1, 0.1])
+    mesh(
+      new T.SphereGeometry(0.025, 8, 6),
+      mat("#303633"),
+      x,
+      1.78,
+      -0.255,
+      player,
+    );
   const heldWeapon = new T.Group();
   heldWeapon.position.set(0.5, 1.15, -0.12);
   player.add(heldWeapon);
@@ -948,6 +1103,157 @@ export function createGame(
       mountainScenery.add(object);
   }
   scene.add(mountainScenery);
+  const vista = new T.Group();
+  scene.add(vista);
+  LEVELS.forEach((peak, i) => {
+    const peakStart = vista.children.length;
+    const x = (i - 2) * 12 + 7,
+      h = [18, 23, 29, 25, 34][i],
+      z = -24 - Math.abs(i - 2) * 2;
+    mesh(new T.ConeGeometry(10, h, 7), mat(peak.rock), x, h / 2 - 4, z, vista);
+    mesh(
+      new T.ConeGeometry(7.5, h * 0.72, 7),
+      mat(peak.ground),
+      x,
+      h * 0.64 - 4,
+      z,
+      vista,
+    );
+    mesh(
+      new T.ConeGeometry(3.1, h * 0.3, 7),
+      mat(i >= 3 ? "#f1f2df" : "#d8d5b2"),
+      x,
+      h * 0.85 - 4,
+      z,
+      vista,
+    );
+    // Project a winding ribbon onto the actual faceted mountain, so no road floats or cuts through it.
+    const faces = vista.children.slice(peakStart) as T.Mesh[];
+    vista.updateMatrixWorld(true);
+    const roadRay = new T.Raycaster();
+    const roadVertices: number[] = [],
+      roadIndices: number[] = [];
+    const roadPoint = (t: number, side: number) => {
+      const y = h * t - 4;
+      const offset = Math.sin(t * Math.PI * 5) * (1 - t) * 5;
+      const px = x + offset + side * (0.48 - t * 0.22);
+      roadRay.set(new T.Vector3(px, y, z + 20), new T.Vector3(0, 0, -1));
+      const hit = roadRay.intersectObjects(faces, false)[0];
+      return new T.Vector3(px, y, (hit?.point.z ?? z) + 0.1);
+    };
+    for (let step = 0; step <= 100; step++) {
+      const t = 0.04 + (step / 100) * 0.91;
+      for (const side of [-1, 1])
+        roadVertices.push(...roadPoint(t, side).toArray());
+      if (step < 100) {
+        const k = step * 2;
+        roadIndices.push(k, k + 1, k + 2, k + 1, k + 3, k + 2);
+      }
+    }
+    const roadGeometry = new T.BufferGeometry();
+    roadGeometry.setAttribute(
+      "position",
+      new T.Float32BufferAttribute(roadVertices, 3),
+    );
+    roadGeometry.setIndex(roadIndices);
+    roadGeometry.computeVertexNormals();
+    const roadMaterial = new T.MeshStandardMaterial({
+      color: i === 3 ? "#9b7956" : "#f4d69b",
+      side: T.DoubleSide,
+      roughness: 1,
+    });
+    mesh(roadGeometry, roadMaterial, 0, 0, 0, vista);
+    const summit = roadPoint(0.95, 0);
+    mesh(
+      new T.CylinderGeometry(0.055, 0.065, 1.5, 6),
+      mat("#725e43"),
+      summit.x,
+      summit.y + 0.7,
+      summit.z,
+      vista,
+    );
+    mesh(
+      new T.PlaneGeometry(0.95, 0.55),
+      new T.MeshStandardMaterial({ color: "#bc5343", side: T.DoubleSide }),
+      summit.x + 0.48,
+      summit.y + 1.15,
+      summit.z,
+      vista,
+    );
+    for (let j = 0; j < 9; j++) {
+      const px = x + Math.sin(j * 2.4) * 5.5,
+        pz = z + 4 + Math.cos(j * 1.8) * 2;
+      const py = h * 0.22 + (j % 3) * 0.6;
+      mesh(
+        new T.CylinderGeometry(0.09, 0.13, 1, 6),
+        mat("#6e5945"),
+        px,
+        py,
+        pz,
+        vista,
+      );
+      mesh(
+        new T.ConeGeometry(0.7, 2.5, 7),
+        mat(peak.foliage),
+        px,
+        py + 1.2,
+        pz,
+        vista,
+      );
+      if (i === 0)
+        mesh(
+          new T.IcosahedronGeometry(0.8, 1),
+          mat("#e8b6b3"),
+          px,
+          py + 1.9,
+          pz,
+          vista,
+        );
+    }
+    const title = label(`${peak.season} · ${peak.name}`, x, h + 0.1, z, 7);
+    vista.attach(title);
+  });
+  mesh(
+    new T.CylinderGeometry(5, 3.5, 2.5, 9),
+    mat("#687967"),
+    7,
+    -1.3,
+    5,
+    vista,
+  );
+  mesh(
+    new T.CylinderGeometry(5.05, 5, 0.2, 9),
+    mat("#a5b58a"),
+    7,
+    0.05,
+    5,
+    vista,
+  );
+  for (let i = 0; i < 12; i++) {
+    mesh(
+      new T.IcosahedronGeometry(0.3 + (i % 3) * 0.15, 0),
+      mat("#b8b39a"),
+      3 + i * 0.65,
+      0.25,
+      3 + Math.sin(i) * 1.3,
+      vista,
+    );
+  }
+  // Dedicated menu models never share positions or visibility with live enemies.
+  const vistaBeast = enemyView(-1, "beast");
+  const vistaDragon = enemyView(-2, "boss");
+  for (const view of [vistaBeast, vistaDragon]) {
+    enemyViews.delete(view.group === vistaBeast.group ? -1 : -2);
+    vista.add(view.group);
+    view.bar.visible = false;
+    view.group.rotation.y = Math.PI - 0.25;
+  }
+  vistaBeast.group.scale.setScalar(3.2);
+  vistaBeast.group.position.set(-5, 11, -15);
+  vistaDragon.group.scale.setScalar(4);
+  vistaDragon.group.position.set(31, 25.5, -22);
+  const vistaGhost = createChaseGhost(vista);
+  vistaGhost.group.scale.setScalar(2.8);
   let previousChasing = false;
   const chaseGhost = createChaseGhost(scene);
   const bossEffects = createBossEffects(scene);
@@ -971,6 +1277,8 @@ export function createGame(
     life: number;
     v: T.Vector3;
     straight?: boolean;
+    weapon?: "bow" | "pistol";
+    speed?: number;
     targetId?: number;
     end?: T.Vector3;
   }[] = [];
@@ -989,12 +1297,22 @@ export function createGame(
   });
   extraMaterials.add(shotMaterial);
   extraMaterials.add(flashMaterial);
+  const arrowAssets = createArrowAssets();
+  geometries.add(arrowAssets.geometry);
+  arrowAssets.materials.forEach((material) => extraMaterials.add(material));
+  const arrowImpactMaterial = new T.MeshBasicMaterial({ color: "#d6bd88" });
+  extraMaterials.add(arrowImpactMaterial);
   const particleGeometry = new T.IcosahedronGeometry(0.12, 0);
   geometries.add(particleGeometry);
   const guideSteps: T.Mesh[] = [];
   const footGeometry = createFootGeometry();
   geometries.add(footGeometry);
-  const snowFootprints = createSnowFootprints(scene, level, footGeometry);
+  const snowFootprints = createSnowFootprints(
+    scene,
+    level,
+    footGeometry,
+    walkableMeshes,
+  );
   const footMaterial = new T.MeshBasicMaterial({
     color: "#80653b",
     transparent: true,
@@ -1280,7 +1598,7 @@ export function createGame(
       sound.update(
         dt,
         level.id,
-        sim.state.phase,
+        !sim.state.dead && sim.s > 134 && sim.s < 170 ? sim.state.phase : 0,
         sim.chase.active || sim.deathInChase,
         sim.chase.gap,
       );
@@ -1347,7 +1665,7 @@ export function createGame(
     heldWeapon.visible = !sim.state.dead && (sim.state.bow || sim.state.pistol);
     heldBow.visible = sim.state.weapon === "bow" && sim.state.bow;
     heldPistol.visible = sim.state.weapon === "pistol" && sim.state.pistol;
-    if (bowPickup) bowPickup.visible = !sim.state.bow;
+    bowPickups.forEach((bow, i) => (bow.visible = sim.state.bowRack !== i));
     if (pistolPickup) pistolPickup.visible = !sim.state.pistol;
     waypoint.visible = !!sim.state.destination && !sim.state.dead;
     if (sim.state.destination) {
@@ -1361,7 +1679,8 @@ export function createGame(
       );
     } else clearGuide();
     const camYaw = settings.fixedCamera ? 0 : yaw,
-      distance = sim.state.zoom ? 8 : 16;
+      compact = camera.aspect > 1.4 && el.clientHeight < 540,
+      distance = sim.state.zoom ? 8 : compact ? 12 : 16;
     const cameraTarget = chasing
       ? new T.Vector3(
           p.x - Math.sin(chasePose.heading) * 23,
@@ -1370,7 +1689,7 @@ export function createGame(
         )
       : new T.Vector3(
           p.x + Math.sin(camYaw) * distance,
-          p.y + 9 + pitch * 12,
+          p.y + (compact ? 7 : 9) + pitch * 12,
           p.z + Math.cos(camYaw) * distance,
         );
     if (chasing !== previousChasing) {
@@ -1395,7 +1714,16 @@ export function createGame(
       w.halo.position.y = w.a.position.y;
       w.halo.quaternion.copy(camera.quaternion);
     });
-    bag.visible = bagLabel.visible = sim.bagVisible;
+    for (const d of decoys) {
+      const triggered = sim.wordTrap?.index === d.index;
+      d.a.visible = d.halo.visible = !triggered;
+      d.bomb.visible = triggered && !sim.state.dead;
+      d.a.position.y = d.halo.position.y =
+        d.y + Math.sin(t * 2 + d.index) * 0.14;
+      d.halo.quaternion.copy(camera.quaternion);
+      d.bomb.scale.setScalar(1 + Math.sin(t * 30) * 0.15);
+    }
+    bag.visible = sim.bagVisible;
     bag.rotation.y = t;
     bag.position.y = bagPos.y + Math.sin(t * 2) * 0.15;
     const arr = flag.geometry.attributes.position;
@@ -1454,6 +1782,7 @@ export function createGame(
         else a.rotation.z = Math.sin(t * 5) * (i === 0 ? -1 : 1) * 0.5;
       });
     }
+    luckyCelebration.update(dt);
     chaseGhost.update(t, chaseDistance, sim.chase.gap, chasing);
     bossEffects.update(
       t,
@@ -1507,6 +1836,12 @@ export function createGame(
     wa.needsUpdate = true;
     for (const e of sim.events.splice(0)) {
       if (e.kind !== "guide" && e.kind !== "hit") sound.effect(e.kind, e.index);
+      if (e.kind === "death") luckyCelebration.clear();
+      if (e.kind === "bag")
+        luckyCelebration.play(
+          e.index ?? 0,
+          new T.Vector3(e.x ?? p.x, (e.y ?? p.y) + 1, e.z ?? p.z),
+        );
       if (e.kind === "guide") guide(e.x ?? p.x, e.z ?? p.z);
       if (e.kind === "death" || e.kind === "explosion" || e.kind === "burst") {
         effect(
@@ -1545,28 +1880,40 @@ export function createGame(
         const direction = end.clone().sub(origin),
           distance = direction.length();
         direction.normalize();
-        const a = mesh(shotGeometry, shotMaterial);
+        const weapon = e.index === 1 ? "pistol" : "bow";
+        const speed = weapon === "bow" ? 34 : 48;
+        const a =
+          weapon === "bow"
+            ? new T.Mesh(arrowAssets.geometry, arrowAssets.materials)
+            : new T.Mesh(shotGeometry, shotMaterial);
+        a.name = weapon === "bow" ? "player-arrow" : "player-bullet";
+        scene.add(a);
         a.position.copy(origin);
         a.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), direction);
         a.castShadow = false;
         particles.push({
           obj: a,
-          life: e.targetId !== undefined ? 2 : distance / 48,
+          life: e.targetId !== undefined ? 2 : distance / speed,
+          weapon,
+          speed,
           targetId: e.targetId,
           end,
-          v: direction.multiplyScalar(48),
+          v: direction.multiplyScalar(speed),
           straight: true,
         });
-        const flash = mesh(particleGeometry, flashMaterial);
-        flash.position.copy(origin);
-        flash.scale.setScalar(2.6);
-        flash.castShadow = false;
-        particles.push({
-          obj: flash,
-          life: 0.08,
-          v: new T.Vector3(),
-          straight: true,
-        });
+        if (weapon === "pistol") {
+          const flash = mesh(particleGeometry, flashMaterial);
+          flash.name = "gun-muzzle-flash";
+          flash.position.copy(origin);
+          flash.scale.setScalar(2.6);
+          flash.castShadow = false;
+          particles.push({
+            obj: flash,
+            life: 0.08,
+            v: new T.Vector3(),
+            straight: true,
+          });
+        }
       }
     }
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -1577,16 +1924,20 @@ export function createGame(
         const enemy = sim.enemies.find((e) => e.id === a.targetId);
         if (enemy) a.end.set(centerX(enemy.s) + enemy.lane, enemy.y, -enemy.s);
         const direction = a.end.clone().sub(a.obj.position);
-        if (direction.length() <= 48 * dt || a.life <= 0) {
+        if (direction.length() <= (a.speed ?? 48) * dt || a.life <= 0) {
           a.obj.position.copy(a.end);
           a.life = 0;
-          for (let n = 0; n < 10; n++) {
+          for (let n = 0; n < (a.weapon === "bow" ? 4 : 10); n++) {
             const spark = mesh(
               particleGeometry,
-              n % 2 ? flashMaterial : shotMaterial,
+              a.weapon === "bow"
+                ? arrowImpactMaterial
+                : n % 2
+                  ? flashMaterial
+                  : shotMaterial,
             );
             spark.position.copy(a.end);
-            spark.scale.setScalar(n === 0 ? 4 : 1.5);
+            spark.scale.setScalar(a.weapon === "bow" ? 0.8 : n === 0 ? 4 : 1.5);
             particles.push({
               obj: spark,
               life: 0.22,
@@ -1597,9 +1948,11 @@ export function createGame(
               ),
             });
           }
-          if (a.targetId !== undefined) sound.effect("hit");
+          if (a.targetId !== undefined)
+            sound.effect("hit", a.weapon === "pistol" ? 1 : 0);
         } else {
-          a.v.copy(direction.normalize().multiplyScalar(48));
+          direction.normalize();
+          a.v.copy(direction).multiplyScalar(a.speed ?? 48);
           a.obj.quaternion.setFromUnitVectors(
             new T.Vector3(0, 1, 0),
             direction,
@@ -1612,7 +1965,8 @@ export function createGame(
         scene.remove(a.obj);
         if (
           a.obj.geometry !== particleGeometry &&
-          a.obj.geometry !== shotGeometry
+          a.obj.geometry !== shotGeometry &&
+          a.obj.geometry !== arrowAssets.geometry
         ) {
           a.obj.geometry.dispose();
           geometries.delete(a.obj.geometry);
@@ -1620,10 +1974,40 @@ export function createGame(
         particles.splice(i, 1);
       }
     }
+    vista.visible = menuView;
+    vistaGhost.update(t, 0, 0, menuView);
+    vistaGhost.group.position.set(8, 15.5 + Math.sin(t * 1.5) * 0.35, -16);
+    vistaGhost.group.rotation.y = -0.2;
+    vistaDragon.group.position.y = 25.5 + Math.sin(t * 1.3) * 0.45;
+    vistaDragon.parts.forEach(
+      (wing, i) => (wing.rotation.z = Math.sin(t * 2) * 0.25 * (i ? -1 : 1)),
+    );
+    for (const view of enemyViews.values())
+      if (menuView) view.group.visible = false;
+    if (menuView) {
+      mountainScenery.visible = chaseTrack.visible = false;
+      player.position.set(7, 0.2, 5);
+      player.scale.setScalar(2.3);
+      player.rotation.set(0, -0.35, 0);
+      heldWeapon.visible = false;
+      camera.position.set(4, 14, 44);
+      camera.lookAt(1, 10, -10);
+      camera.fov = 53;
+      camera.updateProjectionMatrix();
+      scene.background = new T.Color("#9fb9ad");
+      if (scene.fog instanceof T.FogExp2) {
+        scene.fog.color.set("#9fb9ad");
+        scene.fog.density = 0.006;
+      }
+      sun.position.set(-15, 45, 25);
+      sun.target.position.set(7, 0, -15);
+      weather.position.set(7, 0, 0);
+    } else player.scale.setScalar(1);
     renderer.render(scene, camera);
     if (now - lastSend > 90) {
       onState({
         ...sim.state,
+        soundtrack: sound.soundtrack,
         collected: [...sim.state.collected],
         guardians: [...sim.state.guardians],
         buffs: { ...sim.state.buffs },
@@ -1631,10 +2015,16 @@ export function createGame(
       lastSend = now;
     }
   }
-  Object.assign(window, { __mountaineerQA: { sim, camera, renderer } }); // TEMPORARY_QA
+  if (import.meta.env.DEV)
+    Object.assign(window, {
+      __mountaineerQA: { sim, camera, renderer, sound },
+    });
   sound.setMuted(settings.muted);
   frame = requestAnimationFrame(tick);
   return {
+    menu(v: boolean) {
+      menuView = v;
+    },
     pause(v: boolean) {
       paused = v;
       sound.setActive(!v);
@@ -1700,8 +2090,10 @@ export function createGame(
       fireWater?.dispose();
       portal?.dispose();
       bossEffects.dispose();
+      luckyCelebration.clear();
       snowFootprints.dispose();
       chaseGhost.dispose();
+      vistaGhost.dispose();
     },
   };
 }

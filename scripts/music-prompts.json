@@ -1,0 +1,55 @@
+{
+  "model": "facebook/musicgen-medium",
+  "duration": 24,
+  "tracks": [
+    {
+      "id": "spring",
+      "title": "春芽拾字",
+      "scene": "春季花林与初次登山",
+      "seed": 1101,
+      "prompt": "Gentle instrumental adventure game music for a sunlit spring mountain path with pink blossoms. Delicate Chinese bamboo flute, plucked guzheng, warm acoustic guitar and soft bells. Curious, hopeful, playful pentatonic melody, 84 BPM, light steady rhythm, intimate natural acoustic sound, no vocals, no speech."
+    },
+    {
+      "id": "summer",
+      "title": "夏林跃兽",
+      "scene": "夏季密林与野兽障碍",
+      "seed": 1102,
+      "prompt": "Lively instrumental adventure game soundtrack for running through a lush green summer forest. Bright marimba ostinato, bamboo flute phrases, pizzicato strings and warm hand drums. Brave, energetic and sunny, 112 BPM, bouncy syncopated groove, memorable pentatonic melody, no vocals, no speech."
+    },
+    {
+      "id": "autumn",
+      "title": "秋坑借势",
+      "scene": "秋季山岩、蓄势跳跃与机关",
+      "seed": 1103,
+      "prompt": "Instrumental cinematic mountain adventure music for golden autumn cliffs and daring jumps. Expressive cello, plucked pipa, wooden percussion and flowing acoustic guitar arpeggios. Warm amber atmosphere, resilient and determined, 96 BPM, measured forward momentum with gentle suspense, no vocals, no speech."
+    },
+    {
+      "id": "winter",
+      "title": "冬脊凌霜",
+      "scene": "冬季冰脊、分岔与飞龙",
+      "seed": 1104,
+      "prompt": "Atmospheric instrumental game music for climbing a snowy mountain ridge above icy ravines. Sparse felt piano, crystalline celesta, airy flute and sustained low strings. Cold spacious reverb, lonely but courageous, 72 BPM, restrained soft percussion and shimmering high notes, no vocals, no speech."
+    },
+    {
+      "id": "summit",
+      "title": "云巅终章",
+      "scene": "终章云巅探索与引水破焰",
+      "seed": 1105,
+      "prompt": "Majestic instrumental fantasy adventure soundtrack for an ancient mountain temple above the clouds. Soaring bamboo flute, guzheng arpeggios, lush orchestral strings and deep gentle frame drums. Spiritual, expansive and hopeful, 100 BPM, heroic pentatonic theme, gradual orchestral movement, no vocals, no speech."
+    },
+    {
+      "id": "chase",
+      "title": "幽径追影",
+      "scene": "旋涡门后的幽灵追逐",
+      "seed": 1106,
+      "prompt": "Tense instrumental chase music for a ghost pursuit on a dark winding mountain trail. Rapid staccato low strings, pulsing synth bass, urgent tom drums, dissonant bowed textures and ticking percussion. Frightening, relentless forward motion, 150 BPM, driving rhythmic ostinato, no vocals, no speech."
+    },
+    {
+      "id": "boss",
+      "title": "云巅决战",
+      "scene": "终章首领战",
+      "seed": 1107,
+      "prompt": "Epic instrumental boss battle game soundtrack on a stormy mountain summit. Thunderous taiko drums, aggressive low strings, powerful brass stabs, distorted bass and urgent Chinese pipa ostinato. Heroic danger, intense cinematic action, 140 BPM, strong driving percussion and dramatic minor melody, no vocals, no speech."
+    }
+  ]
+}

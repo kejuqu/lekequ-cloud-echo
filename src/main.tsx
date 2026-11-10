@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  Trophy,
   Mountain,
   Flag,
   Volume2,
@@ -31,6 +32,7 @@ import {
 } from "lucide-react";
 import { CHASE_DURATION } from "./chase";
 import { LEVELS } from "./levels";
+import { MUSIC_TITLES } from "./music";
 import { parseSave, SAVE_KEY, type Settings, type Save } from "./rules";
 import type { GameState, createGame } from "./game";
 import "./style.css";
@@ -97,11 +99,24 @@ function App() {
     [stick, setStick] = useState({ x: 0, y: 0 });
   const [portrait, setPortrait] = useState(false);
   useEffect(() => {
-    const query = matchMedia(MOBILE_PORTRAIT_QUERY);
-    const update = () => setPortrait(query.matches);
+    const query = matchMedia(MOBILE_PORTRAIT_QUERY),
+      mobile = matchMedia(MOBILE_QUERY);
+    const requestFullscreen = () => {
+      if (mobile.matches && !query.matches && !document.fullscreenElement)
+        void enterLandscape();
+    };
+    const update = () => {
+      setPortrait(query.matches);
+      requestFullscreen();
+    };
     update();
     query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
+    // 浏览器若要求用户手势，横屏后的第一次触摸会立即重试全屏。
+    window.addEventListener("pointerdown", requestFullscreen);
+    return () => {
+      query.removeEventListener("change", update);
+      window.removeEventListener("pointerdown", requestFullscreen);
+    };
   }, []);
   const level = LEVELS[levelId - 1];
   const persist = () => {
@@ -149,9 +164,12 @@ function App() {
     };
   }, [levelId, retry]);
   useEffect(() => {
+    game.current?.menu(
+      mode === "menu" || (previous === "menu" && mode !== "play"),
+    );
     game.current?.pause(mode !== "play" || loading || portrait);
     setStick({ x: 0, y: 0 });
-  }, [mode, loading, portrait]);
+  }, [mode, previous, loading, portrait]);
   useEffect(() => {
     save.current.settings = settings;
     game.current?.settings(settings);
@@ -181,13 +199,18 @@ function App() {
     setMode("play");
   };
   const choose = (id: number) => {
-    if (id === levelId && state?.won) {
-      game.current?.reset();
+    if (matchMedia(MOBILE_QUERY).matches) void enterLandscape();
+    if (id === levelId) {
+      if (state?.won) game.current?.reset();
+    } else {
+      setState(null);
+      setLoading(true);
+      setLevelId(id);
     }
-    setLevelId(id);
     save.current.lastLevel = id;
     persist();
-    setMode("menu");
+    setPrevious("play");
+    setMode("play");
   };
   const update = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     setSettings((s) => ({ ...s, [key]: value }));
@@ -219,7 +242,11 @@ function App() {
     won;
   return (
     <main
-      className={state?.chase.active || state?.deathInChase ? "chase-mode" : ""}
+      data-level={levelId}
+      className={[
+        mode === "menu" ? "menu-mode" : "",
+        state?.chase.active || state?.deathInChase ? "chase-mode" : "",
+      ].join(" ")}
       style={
         {
           "--control-opacity": settings.opacity,
@@ -257,7 +284,7 @@ function App() {
         >
           <Mountain size={29} />
           <div>
-            登顶寻囊<small>THE SUMMIT JOURNEY</small>
+            山行者<small>THE MOUNTAIN WALKER</small>
           </div>
         </button>
         <div className="chapter">
@@ -336,7 +363,7 @@ function App() {
           </div>
           <div>
             <i>{state?.bag ? <Check size={11} /> : 2}</i>
-            {state?.bag ? "锦囊已收好" : "找齐汉字，让锦囊显形"}
+            {state?.bag ? "福袋已打开" : "找齐汉字，让福袋显形"}
           </div>
           <div>
             <i>3</i>登顶校验完整成语
@@ -351,7 +378,7 @@ function App() {
         <div className="peace">
           <Wind size={13} />
           {levelId === 1
-            ? "无怪物 · 无炸弹 · 学习浅坑蹬跳"
+            ? "认准目标字 · 小心形近字"
             : "踩出山体会坠落 · 已收字块保留"}
         </div>
       </aside>
@@ -365,7 +392,7 @@ function App() {
         <div className={"bag " + (state?.bag ? "found" : "")}>
           <Sparkles size={24} />
           <div>
-            <b>{state?.bag || "锦囊尚未显形"}</b>
+            <b>{state?.reward || "福袋尚未显形"}</b>
             <small>
               {state?.bag
                 ? "前往山顶红旗校验"
@@ -432,24 +459,11 @@ function App() {
       </div>
       {mode === "menu" && !loading && !error && !won && (
         <section className="intro">
-          <div className="intro-kicker">五座山峰，一场四季的冒险</div>
-          <h2>
-            {levelId === 1 ? (
-              <>
-                山高有路，
-                <br />
-                成长有声。
-              </>
-            ) : (
-              <>
-                {level.season}山有约，
-                <br />
-                向顶而行。
-              </>
-            )}
-          </h2>
+          <div className="intro-kicker">四季山岳 · 汉字奇旅</div>
+          <h2>山行者</h2>
+          <div className="intro-tagline">循四季，赴山巅。</div>
           <p>
-            收集汉字，借凹坑的光跃上高岩。
+            五座山峰，等你留下足迹。
             <br />
             把「{level.idiom}」带到山顶红旗。
           </p>
@@ -460,6 +474,23 @@ function App() {
             <button className="secondary" onClick={() => open("peaks")}>
               选择山峰 <Map size={15} />
             </button>
+          </div>
+          <div className="season-route" role="group" aria-label="预览五峰">
+            {LEVELS.map((peak) => (
+              <button
+                key={peak.id}
+                data-season={peak.id}
+                aria-label={`预览${peak.season}峰：${peak.name}`}
+                aria-pressed={levelId === peak.id}
+                onClick={() => setLevelId(peak.id)}
+              >
+                <span>{peak.season === "终" ? "巅" : peak.season}</span>
+                <small>{peak.name}</small>
+                {save.current.completed.includes(peak.id) && (
+                  <Check size={10} />
+                )}
+              </button>
+            ))}
           </div>
           <small>
             <Footprints size={13} /> 已登顶 {save.current.completed.length} / 5
@@ -620,13 +651,7 @@ function App() {
                 {state.prompt}
                 <ChevronRight size={15} />
               </button>
-            ) : (
-              <span>
-                {state?.destination
-                  ? "正在前往点击位置 · WASD / 摇杆可随时接管"
-                  : "点击道路移动 · 金光时单按空格自动越上高台"}
-              </span>
-            )}
+            ) : null}
           </div>
           {state?.inPit && (
             <div className={"pit-meter " + (state.pitReady ? "perfect" : "")}>
@@ -658,7 +683,7 @@ function App() {
             <div>
               <b>
                 {state?.weapon === "pistol"
-                  ? "手枪"
+                  ? "机关枪"
                   : state?.bow
                     ? "弓箭"
                     : "徒手探索"}
@@ -810,12 +835,27 @@ function App() {
         </>
       )}
       <footer>
-        <div className="sound-note">
-          <span className="sound-bars">▂ ▅ ▃ ▇ ▄</span>
+        <div
+          className="sound-note"
+          data-playing={state?.soundtrack.playing ?? false}
+        >
+          <span className="sound-bars" aria-hidden="true">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <i key={i} style={{ "--bar": i } as React.CSSProperties} />
+            ))}
+          </span>
           <div>
-            {level.music}
+            {MUSIC_TITLES[state?.soundtrack.key ?? ""] ?? level.music}
             <small>
-              原创合成声景 · {settings.muted ? "已静音" : "随旅途奏响"}
+              {settings.muted
+                ? "已静音"
+                : state?.soundtrack.playing
+                  ? "场景配乐 · 正在播放"
+                  : mode === "menu"
+                    ? "场景配乐 · 出发后奏响"
+                    : playing
+                      ? "山间声景"
+                      : "配乐已暂停"}
             </small>
           </div>
         </div>
@@ -846,7 +886,10 @@ function App() {
       {modal && !error && (
         <div className="overlay">
           <section
-            className={"modal " + (mode === "peaks" ? "peaks-modal" : "")}
+            className={
+              "modal " +
+              (won ? "victory-modal" : mode === "peaks" ? "peaks-modal" : "")
+            }
             role="dialog"
             aria-modal="true"
             aria-label={
@@ -866,23 +909,66 @@ function App() {
             )}
             {won ? (
               <>
-                <div className="medal">
-                  <Flag size={34} />
+                <div className="confetti" aria-hidden="true">
+                  {Array.from({ length: 28 }, (_, i) => (
+                    <i key={i} style={{ "--i": i } as React.CSSProperties} />
+                  ))}
                 </div>
-                <div className="eyebrow">第 {levelId} 峰 · 已登顶</div>
-                <h2>
+                <div className="medal">
+                  <Trophy size={48} />
+                </div>
+                <div className="eyebrow">
+                  SUMMIT CONQUERED · 第 {levelId} 峰
+                </div>
+                <h2>你做到了！</h2>
+                <div className="victory-title">
                   {levelId === 5
-                    ? "踏过四季，登峰造极"
-                    : "每一步，皆是" + level.name}
-                </h2>
-                <p>
-                  锦囊「{state?.bag}」与红旗文字一致，校验成功。
-                  <br />
-                  已收集 {state?.collected.length} / {level.collect.length} 字 ·
-                  用时 {Math.floor((state?.time ?? 0) / 60)} 分{" "}
-                  {Math.floor((state?.time ?? 0) % 60)} 秒<br />
-                  本次失败 {state?.deaths} 次，你依然抵达了山顶。
+                    ? "五峰征服者 · 登峰造极"
+                    : `${level.season}峰已征服 · ${level.name}勋章`}
+                </div>
+                <p className="victory-message">
+                  {(state?.deaths ?? 0) > 0
+                    ? "每次重新出发，都让你更强。今天，你站上了山顶！"
+                    : "从第一步到最高处，这座山见证了你的实力。"}
                 </p>
+                <div className="victory-stats">
+                  <div>
+                    <b>
+                      {state?.collected.length}
+                      <small> / {level.collect.length}</small>
+                    </b>
+                    <span>汉字集齐</span>
+                  </div>
+                  <div>
+                    <b>
+                      {Math.floor((state?.time ?? 0) / 60)}
+                      <small> 分 </small>
+                      {Math.floor((state?.time ?? 0) % 60)}
+                      <small> 秒</small>
+                    </b>
+                    <span>登顶用时</span>
+                  </div>
+                  <div>
+                    <b>
+                      {save.current.completed.length}
+                      <small> / 5</small>
+                    </b>
+                    <span>征服山峰</span>
+                  </div>
+                </div>
+                <div className="victory-peaks" aria-label="五峰成就">
+                  {LEVELS.map((l) => (
+                    <span
+                      key={l.id}
+                      className={
+                        save.current.completed.includes(l.id) ? "achieved" : ""
+                      }
+                    >
+                      <Mountain size={22} />
+                      {l.season}
+                    </span>
+                  ))}
+                </div>
                 {levelId < 5 ? (
                   <button
                     className="primary"
@@ -1061,7 +1147,7 @@ function App() {
                 <div className="eyebrow">重新整理行囊</div>
                 <h2>要从山脚重新出发吗？</h2>
                 <p>
-                  本关怪物、炸弹、机关、武器与锦囊重置。
+                  本关怪物、炸弹、机关、武器与福袋重置。
                   <br />
                   已收集汉字会保留。
                 </p>
@@ -1124,7 +1210,7 @@ function App() {
                   <p>
                     <b>字块与生存</b>
                     <br />
-                    收齐所有汉字后锦囊才显形。拾取完整成语，走到山顶红旗附近即自动校验，
+                    收齐所有汉字后福袋才显形。碰到福袋即自动打开，随机获得彩虹、撒花、香槟或元宝。走到山顶红旗附近即自动校验，
                     成功后弹出登顶标识。踩出山体、触碰炸弹、被野兽击中都会失败；死亡先在道路上倒地停留3秒，再重生。已收字块保留；重生后所有怪物恢复满血与初始位置，机关重置。走近武器自动拾取；补给每
                     15 秒刷新。
                   </p>
@@ -1135,7 +1221,7 @@ function App() {
                     E 抓绳，再按 W /
                     上推攀爬。第5关走入黑色旋涡门后进入独立场地，必须完成30秒追逐：A/D、屏幕左右点击或滑动急转，空格跳横木；按住
                     Shift
-                    或“加速”消耗体力奔跑，甩开持恶鬼叉的黑色幽灵。胜利后自动获得手枪、48发弹药和无限弓箭，返回山路挑战恶龙。三块守护石碑可削弱三阶段
+                    或“加速”消耗体力奔跑，甩开持恶鬼叉的黑色幽灵。胜利后自动获得机关枪、48发弹药和无限弓箭，返回山路挑战恶龙。三块守护石碑可削弱三阶段
                     BOSS。
                   </p>
                 </div>

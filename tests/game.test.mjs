@@ -103,6 +103,30 @@ test("death preserves words but resets all enemies, bag, energy and mechanisms",
   assert.equal(sim.enemies[0].alive, true);
   assert.ok(sim.s < 1);
 });
+test("each bow rack is tracked individually so later racks stay visible", () => {
+  const sim = make(2);
+  assert.equal(sim.state.bowRack, -1);
+  moveTo(sim, 3, -2);
+  frames(sim, 1);
+  assert.equal(sim.state.bow, true);
+  assert.equal(sim.state.bowRack, 0);
+  // 已持弓箭时经过第二个架子不重复发放，记录的架子序号不变，
+  // 渲染层据此只隐藏已拾取的架子，其余架子模型保持可见。
+  moveTo(sim, 103, 2.5);
+  frames(sim, 1);
+  assert.equal(sim.state.bow, true);
+  assert.equal(sim.state.bowRack, 0);
+  // 死亡重生后重置，可在任一架子重新拾取
+  sim.fail("test");
+  frames(sim, 185);
+  assert.equal(sim.state.dead, false);
+  assert.equal(sim.state.bow, false);
+  assert.equal(sim.state.bowRack, -1);
+  moveTo(sim, 103, 2.5);
+  frames(sim, 1);
+  assert.equal(sim.state.bow, true);
+  assert.equal(sim.state.bowRack, 1);
+});
 test("normal jump cannot clear ledge, perfectly charged pit can", () => {
   const sim = make();
   moveTo(sim, 25);
@@ -149,11 +173,11 @@ test("weapon pickups, finite ammo and nonlethal ultimate obey rules", () => {
   moveTo(sim, 3);
   frames(sim, 1);
   assert.equal(sim.state.bow, true);
-  moveTo(sim, 8);
+  moveTo(sim, sim.level.gates[0] + 4);
   frames(sim, 1);
-  assert.equal(sim.state.ammo, 12);
+  assert.equal(sim.state.ammo, 36);
   sim.shoot();
-  assert.equal(sim.state.ammo, 11);
+  assert.equal(sim.state.ammo, 35);
   sim.state.energy = 100;
   moveTo(sim, 142);
   sim.burst();
@@ -190,7 +214,7 @@ test("summit validates idiom and persists completion", () => {
   const sim = make();
   sim.state.collected = [0, 1, 2, 3];
   moveTo(sim, 108, -1.5);
-  sim.interact();
+  sim.update(1 / 60);
   assert.equal(sim.state.bag, "春暖花开");
   moveTo(sim, 112);
   sim.interact();
@@ -252,7 +276,7 @@ test("final boss phases and victory open the summit only after combat", () => {
   const sim = make(5);
   moveTo(sim, 3);
   frames(sim, 1);
-  moveTo(sim, 8);
+  moveTo(sim, sim.level.gates[0] + 4);
   frames(sim, 1);
   sim.state.collected = sim.level.words.map((_, i) => i);
   for (const [i, s] of [137, 143, 149].entries()) {
@@ -273,7 +297,7 @@ test("final boss phases and victory open the summit only after combat", () => {
   sim.chase.completed = true;
   assert.ok(sim.bagVisible);
   moveTo(sim, 179);
-  sim.interact();
+  sim.update(1 / 60);
   moveTo(sim, 184);
   sim.interact();
   assert.equal(sim.state.won, true);

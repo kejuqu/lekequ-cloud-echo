@@ -1,7 +1,10 @@
+import { LUCKY_REWARDS } from "./lucky-rewards.ts";
 import { WATER_TRAVEL_TIME, WATER_GATE } from "./water-timing.ts";
 import * as C from "cannon-es";
 import { Chase, chasePoint, CHASE_DURATION, type ChaseState } from "./chase.ts";
 import {
+  weaponPickups,
+  wordDecoys,
   bladeHeight,
   bladePositions,
   bladeSpan,
@@ -66,6 +69,7 @@ export type Event = {
 export type Snapshot = {
   collected: number[];
   bag: string;
+  reward: string;
   won: boolean;
   stamina: number;
   energy: number;
@@ -75,6 +79,8 @@ export type Snapshot = {
   message: string;
   weapon: "bow" | "pistol";
   bow: boolean;
+  /** 本次生命拾取弓箭的架子序号，-1 表示未拾取，用于按架子隐藏模型。 */
+  bowRack: number;
   pistol: boolean;
   ammo: number;
   charge: number;
@@ -153,6 +159,12 @@ export class Simulation {
   private bossWall?: C.Body;
   /** 返回追逐场地后，暂时禁止恶龙接近、施法和召唤。 */
   private bossApproachAt = 0;
+  wordTrap: {
+    index: number;
+    remaining: number;
+    text: string;
+    correct: string;
+  } | null = null;
   constructor(level: Level, save: Save, onSave: () => void) {
     this.level = level;
     this.save = save;
@@ -171,15 +183,17 @@ export class Simulation {
     this.state = {
       collected: [...(save.collected[level.id] ?? [])],
       bag: "",
+      reward: "",
       won: false,
       stamina: 100,
       energy: 0,
       cooldown: 0,
       progress: 0,
       prompt: "",
-      message: "沿路收集汉字；金色凹坑是唯一高跳点",
+      message: "认准目标字 · 小心形近字",
       weapon: "bow",
       bow: false,
+      bowRack: -1,
       pistol: false,
       ammo: 0,
       charge: 0,
@@ -405,6 +419,7 @@ export class Simulation {
     this.emit("notice", message);
   }
   private spawn(s: number) {
+    this.wordTrap = null;
     this.s = s;
     this.lane = 0;
     this.body.position.set(centerX(s), heightAt(this.level, s) + 0.5, -s);
@@ -481,7 +496,9 @@ export class Simulation {
       this.body.velocity.z = 0;
     } else this.body.velocity.setZero();
     this.state.bag = "";
+    this.state.reward = "";
     this.state.bow = false;
+    this.state.bowRack = -1;
     this.state.pistol = false;
     this.state.ammo = 0;
     this.state.weapon = "bow";
@@ -525,7 +542,8 @@ export class Simulation {
     this.state.time = 0;
   }
   jump() {
-    if (this.deadTime || this.state.won || this.state.climbing) return;
+    if (this.deadTime || this.wordTrap || this.state.won || this.state.climbing)
+      return;
     if (this.chase.active) {
       this.chase.jump();
       return;
@@ -622,16 +640,38 @@ export class Simulation {
     const near = (s: number, lane: number) =>
       Math.hypot(this.s - s, this.lane - lane) < 2.7 &&
       Math.abs(this.pos.y - heightAt(this.level, s)) < 2;
-    if (this.level.id > 1 && !this.state.bow && near(3, -2)) {
-      this.state.bow = true;
-      this.state.weapon = "bow";
-      this.emit("item", "自动拾取弓箭 · 无限弹药");
+    const bag = this.level.bag;
+    if (
+      this.bagVisible &&
+      Math.hypot(this.s - bag.s, this.lane - bag.lane) < 1.1 &&
+      Math.abs(this.pos.y - heightAt(this.level, bag.s)) < 1.6 &&
+      !(this.level.id === 3 && this.enemies.some((e) => e.id === 2 && e.alive))
+    ) {
+      this.state.bag = this.level.idiom;
+      this.energy(35);
+      const rewardIndex = Math.floor(Math.random() * LUCKY_REWARDS.length);
+      this.state.reward = LUCKY_REWARDS[rewardIndex];
+      this.emit("bag", `福袋已打开！获得${this.state.reward}`, rewardIndex);
     }
-    if (this.level.id >= 4 && !this.state.pistol && near(8, 2)) {
+    const pickups = weaponPickups(this.level);
+    if (!this.state.bow) {
+      const rack = pickups.bows.findIndex((p) => near(p.s, p.lane));
+      if (rack >= 0) {
+        this.state.bow = true;
+        this.state.bowRack = rack;
+        this.state.weapon = "bow";
+        this.emit("item", "弓箭 · 无限箭矢");
+      }
+    }
+    if (
+      pickups.gun &&
+      !this.state.pistol &&
+      near(pickups.gun.s, pickups.gun.lane)
+    ) {
       this.state.pistol = true;
       this.state.weapon = "pistol";
-      this.state.ammo = 12;
-      this.emit("item", "自动拾取手枪 · 12 发弹药");
+      this.state.ammo = 36;
+      this.emit("item", "机关枪 · 36 发");
     }
   }
   burst() {
@@ -676,13 +716,13 @@ export class Simulation {
     const s = this.state;
     if (
       this.chase.active ||
-      this.clock - this.shotAt < (s.weapon === "bow" ? 0.42 : 0.22) ||
+      this.clock - this.shotAt < (s.weapon === "bow" ? 0.42 : 0.1) ||
       this.deadTime ||
       s.won
     )
       return;
     if (!(s.weapon === "bow" ? s.bow : s.pistol)) {
-      this.notify("走近山脚的武器，即可自动拾取弓箭");
+      this.notify("寻找弓箭架");
       return;
     }
     if (s.weapon === "pistol" && s.ammo <= 0) {
@@ -775,22 +815,14 @@ export class Simulation {
       if (near(l.climbs[i].start, l.climbs[i].lane, 2.5))
         return {
           kind: "climb" + i,
-          label: "抓住绳索攀上陡坡 · E 抓绳，W / 上推攀爬",
+          label: "抓绳 · 上推攀爬",
         };
     if (l.id === 5 && !this.chase.completed && near(128, 0, 4))
       return {
         kind: "chase",
         label: `走入黑色旋涡门 · 开始${CHASE_DURATION}秒幽灵追逐挑战`,
       };
-    if (s > l.length - 3)
-      return { kind: "flag", label: "抵达山顶红旗 · 自动校验并登顶" };
-    if (near(l.bag.s, l.bag.lane) && !this.state.bag)
-      return {
-        kind: "bag",
-        label: this.bagVisible
-          ? `拾取「${l.idiom}」锦囊`
-          : `锦囊未显形：还缺 ${l.collect.length - this.state.collected.length} 个字${this.bossAlive ? " / 需击败恶龙" : l.id === 5 && !this.chase.completed ? " / 需完成幽灵追逐挑战" : ""}`,
-      };
+    if (s > l.length - 3) return { kind: "flag", label: "山顶红旗" };
 
     if (l.id === 5) {
       if (near(WATER_GATE.s, WATER_GATE.lane))
@@ -830,7 +862,7 @@ export class Simulation {
       )
         return {
           kind: "supply" + at,
-          label: "开启补给箱 · 弓箭 / 弹药 / 体力",
+          label: "补充装备与体力",
         };
     if (
       l.id === 3 &&
@@ -852,7 +884,7 @@ export class Simulation {
     if (!this.save.completed.includes(l.id)) this.save.completed.push(l.id);
     this.save.lastLevel = Math.min(5, l.id + 1);
     this.onSave();
-    this.emit("win", "锦囊与红旗文字一致 · 登顶成功！");
+    this.emit("win", "福袋与红旗文字一致 · 登顶成功！");
     return true;
   }
   interact() {
@@ -871,10 +903,10 @@ export class Simulation {
             ? `还缺「${l.collect
                 .split("")
                 .filter((_, i) => !s.collected.includes(i))
-                .join(" / ")}」，找齐字后锦囊才会显形`
+                .join(" / ")}」，找齐字后福袋才会显形`
             : this.bossAlive
               ? "终焉恶龙尚未击败"
-              : "请先回到标记平台拾取锦囊",
+              : "请先回到标记平台拾取福袋",
         );
     } else if (item.kind === "chase") {
       this.startChase();
@@ -890,16 +922,6 @@ export class Simulation {
         this.body.velocity.setZero();
         this.notify("抓紧绳子！按 W 或上推摇杆攀爬，E 松手");
       }
-    } else if (item.kind === "bag") {
-      if (l.id === 3 && this.enemies.some((e) => e.id === 2 && e.alive)) {
-        this.notify("先击败洞口守卫，清除封洞藤蔓");
-        return;
-      }
-      if (this.bagVisible) {
-        s.bag = l.idiom;
-        this.energy(35);
-        this.emit("bag", `已获得「${l.idiom}」锦囊，继续登顶校验`);
-      } else this.notify(item.label);
     } else if (item.kind === "bow") {
       s.bow = true;
       s.weapon = "bow";
@@ -907,13 +929,13 @@ export class Simulation {
     } else if (item.kind === "pistol") {
       s.pistol = true;
       s.weapon = "pistol";
-      s.ammo = 12;
-      this.emit("item", "获得手枪 · 高伤害，注意弹药");
+      s.ammo = 36;
+      this.emit("item", "获得机关枪 · 高伤害，注意弹药");
     } else if (item.kind.startsWith("supply")) {
       s.bow = true;
       if (l.id >= 4) {
         s.pistol = true;
-        s.ammo = 24;
+        s.ammo = 48;
       }
       s.stamina = 100;
       this.supplyTimers.set("s" + item.kind.slice(6), this.clock);
@@ -971,6 +993,16 @@ export class Simulation {
       if (this.deadTime === 0) this.spawn(this.checkpoint);
       return;
     }
+    if (this.wordTrap) {
+      this.wordTrap.remaining -= dt;
+      this.body.velocity.setZero();
+      if (this.wordTrap.remaining <= 0) {
+        const { text, correct } = this.wordTrap;
+        this.emit("explosion");
+        this.fail(`收集错误文字：「${text}」应为「${correct}」`);
+      }
+      return;
+    }
     // 水抵达后才撤除碰撞墙，避免画面尚在燃烧时就能穿过。
     if (
       st.water &&
@@ -1016,10 +1048,7 @@ export class Simulation {
         st.weapon = "pistol";
         st.ammo = Math.max(st.ammo, 48);
         st.stamina = 100;
-        this.emit(
-          "checkpoint",
-          "追逐胜利！获得手枪、48发弹药与弓箭，恶龙保持24米距离，3.5秒后恢复攻击并保持20米间距",
-        );
+        this.emit("checkpoint", "逃脱成功！装备就绪，准备迎战");
       }
       return;
     }
@@ -1224,10 +1253,28 @@ export class Simulation {
       );
       return;
     }
+    for (const d of wordDecoys(l)) {
+      if (
+        Math.abs(this.s - d.s) < 0.85 &&
+        Math.abs(this.lane - d.lane) < 0.7 &&
+        Math.abs(this.pos.y - heightAt(l, d.s)) < 1.8
+      ) {
+        this.wordTrap = {
+          index: d.index,
+          remaining: 0.65,
+          text: d.text,
+          correct: d.correct,
+        };
+        st.destination = null;
+        this.body.velocity.setZero();
+        this.emit("notice", "错字变成了炸弹！");
+        return;
+      }
+    }
     l.words.forEach((p, i) => {
       if (
         Math.abs(this.s - p.s) < 1.65 &&
-        Math.abs(this.lane - p.lane) < 1.65 &&
+        Math.abs(this.lane - p.lane) < 1.05 &&
         Math.abs(this.pos.y - (heightAt(l, p.s) + (p.lift ?? 0))) < 2.2
       )
         this.collect(i);
@@ -1398,7 +1445,7 @@ export class Simulation {
       this.lane < -1 &&
       this.enemies.some((e) => e.alive && e.id === 2)
     )
-      this.notify("洞口守卫未清除，藤蔓封住锦囊入口");
+      this.notify("洞口守卫未清除，藤蔓封住福袋入口");
     st.progress = Math.max(
       0,
       Math.min(100, Math.round((this.s / l.length) * 100)),

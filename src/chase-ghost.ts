@@ -2,7 +2,7 @@ import * as T from "three";
 import { chasePoint } from "./chase";
 
 /** 黑袍幽灵与三齿恶鬼叉，独立维护漂浮动画和资源。 */
-export function createChaseGhost(scene: T.Scene) {
+export function createChaseGhost(scene: T.Object3D) {
   const group = new T.Group();
   scene.add(group);
   const geometries = new Set<T.BufferGeometry>();
@@ -97,6 +97,7 @@ export function createChaseGhost(scene: T.Scene) {
   }
   group.visible = false;
   return {
+    group,
     update(time: number, distance: number, gap: number, visible: boolean) {
       group.visible = visible;
       const p = chasePoint(distance - gap);

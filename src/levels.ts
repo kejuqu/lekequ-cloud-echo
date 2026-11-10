@@ -15,6 +15,7 @@ export type Level = {
   length: number;
   bag: Point;
   words: Point[];
+  decoys?: (Point & { text: string; correct: string; index: number })[];
   pits: number[];
   gates: number[];
   belts: [number, number][];
@@ -307,4 +308,140 @@ export function groundAt(level: Level, s: number, lane: number) {
   if (level.id === 4 && s > 40 && s < 68 && Math.abs(lane) < 0.85)
     return undefined; // genuine fork with a chasm between its branches
   return heightAt(level, s);
+}
+
+/** Shared pickup positions keep physics and visible equipment on the same terrace. */
+export function weaponPickups(level: Level) {
+  return {
+    bows:
+      level.id > 1
+        ? [
+            { s: 3, lane: -2 },
+            ...(level.enemies.some((e) => e.s > level.length * 0.7)
+              ? [
+                  {
+                    s: level.id === 5 ? 138 : level.length - 22,
+                    lane: level.id === 5 ? -4.5 : 2.5,
+                  },
+                ]
+              : []),
+          ]
+        : [],
+    gun: level.id >= 4 ? { s: level.gates[0] + 4, lane: 2 } : undefined,
+  };
+}
+const SIMILAR: Record<string, string> = {
+  春: "奉",
+  暖: "缓",
+  花: "芲",
+  开: "井",
+  绿: "缘",
+  树: "村",
+  成: "戊",
+  荫: "阴",
+  秋: "伙",
+  高: "亭",
+  气: "乞",
+  爽: "夷",
+  傲: "敖",
+  雪: "雷",
+  凌: "淩",
+  霜: "箱",
+  天: "夫",
+  行: "衍",
+  健: "建",
+  君: "尹",
+  子: "孑",
+  以: "似",
+  自: "白",
+  强: "疆",
+  不: "木",
+  息: "思",
+};
+/** A narrow collision radius and an opposite lane make each choice deliberate. */
+export function wordDecoys(level: Level) {
+  return (
+    level.decoys ??
+    level.words.flatMap((p, i) =>
+      p.lift
+        ? []
+        : [
+            {
+              ...p,
+              lane: p.lane > 0 ? -2.4 : 2.4,
+              text: SIMILAR[level.collect[i]],
+              correct: level.collect[i],
+              index: i,
+            },
+          ],
+    )
+  );
+}
+
+/** One layout per game instance: render and physics share it; respawns keep it stable. */
+export function randomizeWords(level: Level, random = Math.random): Level {
+  const occupied: Point[] = level.words
+    .filter((p) => p.lift)
+    .map((p) => ({ ...p }));
+  const safe = (p: Point) => {
+    for (const ds of [-1.2, 0, 1.2])
+      for (const dx of [-0.8, 0, 0.8])
+        if (groundAt(level, p.s + ds, p.lane + dx) === undefined) return false;
+    if (level.pits.some((s) => Math.abs(p.s - s) < 3)) return false;
+    if (level.gates.some((s) => Math.abs(p.s - s) < 3)) return false;
+    if (level.climbs.some((c) => p.s > c.start - 2 && p.s < c.end + 3))
+      return false;
+    if (bladePositions(level).some((s) => Math.abs(p.s - s) < 3)) return false;
+    if (level.bombs.some((b) => Math.hypot(p.s - b.s, p.lane - b.lane) < 3))
+      return false;
+    if (level.enemies.some((e) => Math.hypot(p.s - e.s, p.lane - e.lane) < 3))
+      return false;
+    if (level.id === 5 && Math.abs(p.s - 46) < 3) return false;
+    return true;
+  };
+  const candidates: Point[] = [];
+  const end = Math.min(
+    level.bag.s - 4,
+    Math.max(...level.words.map((p) => p.s)) + 4,
+  );
+  for (let s = 7; s <= end; s += 0.75)
+    for (const lane of [-2.6, -1.3, 0, 1.3, 2.6]) {
+      const p = { s, lane };
+      if (safe(p)) candidates.push(p);
+    }
+  // Shuffle coordinates, not character indices: existing collection saves stay valid.
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  const free = (p: Point) =>
+    occupied.every(
+      (q) =>
+        Math.abs(p.s - q.s) >= 2.5 &&
+        Math.hypot(p.s - q.s, p.lane - q.lane) >= 3.5,
+    );
+  const take = (near?: Point) => {
+    const point =
+      candidates.find(
+        (p) => free(p) && (!near || Math.abs(p.s - near.s) < 5),
+      ) ?? candidates.find(free);
+    if (!point) throw new Error(`关卡 ${level.id} 缺少安全的字块位置`);
+    const result = { ...point };
+    occupied.push(result);
+    return result;
+  };
+  const words = level.words.map((p) => (p.lift ? { ...p } : take(p)));
+  const decoys = level.words.flatMap((p, index) =>
+    p.lift
+      ? []
+      : [
+          {
+            ...take(),
+            text: SIMILAR[level.collect[index]],
+            correct: level.collect[index],
+            index,
+          },
+        ],
+  );
+  return { ...level, words, decoys };
 }
