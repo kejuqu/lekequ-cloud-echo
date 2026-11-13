@@ -294,7 +294,7 @@ export function bladeHeight(
   clock: number,
 ) {
   const wave = (Math.sin(clock * 2.8 + index * Math.PI) + 1) / 2;
-  return heightAt(level, s) + 0.55 + wave * 2.1;
+  return heightAt(level, s) + 0.57 + wave * 2.1;
 }
 /** 返回可站立的地面高度；边界、缺口与分岔深渊返回 undefined。 */
 export function groundAt(level: Level, s: number, lane: number) {

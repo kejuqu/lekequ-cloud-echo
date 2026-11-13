@@ -555,6 +555,17 @@ test("chase sprint increases distance and gap, drains stamina, and recovers on r
   assert.equal(fast.stamina, 100);
 });
 
+test("beast stays glued while running and mirrors sprint to keep pace", () => {
+  const chase = new Chase();
+  chase.start();
+  chase.countdown = 0;
+  for (let i = 0; i < 120; i++) chase.update(1 / 60);
+  assert.ok(Math.abs(chase.gap - 12) < 1e-9, `gap drifted to ${chase.gap}`);
+  for (let i = 0; i < 120; i++) chase.update(1 / 60, true);
+  assert.ok(chase.gap > 12, `expected sprint to reopen gap, got ${chase.gap}`);
+  assert.ok(chase.gap <= 12 + 2.1, `beast should keep close, got ${chase.gap}`);
+});
+
 test("sprinting chase still lasts 30 seconds and stays inside the extended course", () => {
   const chase = new Chase();
   chase.start();
