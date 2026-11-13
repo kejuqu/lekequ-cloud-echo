@@ -1099,8 +1099,8 @@ select {
     position: absolute;
     right: 18px;
     bottom: calc(83px + env(safe-area-inset-bottom, 0px));
-    width: 198px;
-    height: 164px;
+    width: 216px;
+    height: 172px;
     transform: scale(var(--button-scale));
     transform-origin: bottom right;
     user-select: none;
@@ -1108,13 +1108,15 @@ select {
   }
   .touch-actions button {
     position: absolute;
-    width: 55px;
-    height: 55px;
+    width: 60px;
+    height: 60px;
     border: 1px solid #eedbad88;
     border-radius: 50%;
     background: #243e34bb;
     backdrop-filter: blur(5px);
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.15;
+    letter-spacing: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1125,11 +1127,11 @@ select {
     pointer-events: auto;
   }
   .touch-actions svg {
-    width: 17px;
-    height: 17px;
+    width: 19px;
+    height: 19px;
   }
   .touch-actions small {
-    font-size: 8px;
+    font-size: 9px;
   }
   .sprint-action {
     left: 0;
@@ -1140,24 +1142,30 @@ select {
     bottom: 8px;
   }
   .touch-actions .jump-action {
-    right: 9px;
-    top: 9px;
-    width: 62px;
-    height: 62px;
+    right: 10px;
+    top: 10px;
+    width: 72px;
+    height: 72px;
   }
   .interact-action {
-    left: 67px;
+    left: 78px;
     bottom: 0;
   }
   .touch-actions .burst-action {
-    left: 54px;
-    top: 8px;
-    width: 52px;
-    height: 52px;
+    left: 60px;
+    top: 10px;
+    width: 54px;
+    height: 54px;
+    gap: 2px;
+    padding: 3px;
     border-color: #eed390;
   }
+  .touch-actions .burst-action svg {
+    width: 14px;
+    height: 14px;
+  }
   .swap .sprint-action {
-    left: 67px;
+    left: 78px;
     bottom: 0;
   }
   .swap .interact-action {
@@ -1168,6 +1176,10 @@ select {
     background: #294039aa;
     border-color: #73876b;
     opacity: 0.5;
+  }
+  /* 移动端隐藏 BOSS 血条面板（终焉恶龙 / 红条 / 阶段） */
+  .boss {
+    display: none;
   }
   .weapon-panel {
     bottom: 82px;
@@ -1609,9 +1621,67 @@ select {
     width: 90px;
     height: 90px;
   }
+  /* 横屏不再整体缩小，改为重新排布的较大弧形按键组 */
   .touch-actions {
-    bottom: 64px;
-    transform: scale(calc(var(--button-scale) * 0.82));
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+    width: 224px;
+    height: 150px;
+    transform: scale(var(--button-scale));
+    transform-origin: bottom right;
+  }
+  .touch-actions button {
+    width: 58px;
+    height: 58px;
+    font-size: 11px;
+  }
+  .touch-actions svg {
+    width: 19px;
+    height: 19px;
+  }
+  .touch-actions small {
+    font-size: 9px;
+  }
+  .touch-actions .jump-action {
+    right: 0;
+    top: 0;
+    width: 72px;
+    height: 72px;
+    font-size: 12px;
+  }
+  .touch-actions .burst-action {
+    left: 0;
+    top: 12px;
+    width: 54px;
+    height: 54px;
+  }
+  .sprint-action {
+    left: 0;
+    bottom: 0;
+  }
+  .interact-action {
+    left: 80px;
+    bottom: 4px;
+  }
+  .shoot-action {
+    right: 4px;
+    bottom: 0;
+    width: 62px;
+    height: 62px;
+  }
+  .swap .sprint-action {
+    left: 80px;
+    bottom: 4px;
+  }
+  .swap .interact-action {
+    left: 0;
+    bottom: 0;
+  }
+  /* 追逐模式只保留跳跃，固定在右下角便于拇指操作 */
+  .chase-mode .touch-actions .jump-action {
+    top: auto;
+    right: 0;
+    bottom: 0;
   }
   .journey-note {
     bottom: 80px;
@@ -2373,8 +2443,45 @@ main[data-level="1"] .weapon-panel {
     top: 65px;
   }
   .touch-actions {
-    bottom: 40px;
-    transform: scale(calc(var(--button-scale) * 0.72));
+    bottom: 44px;
+    width: 204px;
+    height: 134px;
+    transform: scale(var(--button-scale));
+  }
+  .touch-actions button {
+    width: 52px;
+    height: 52px;
+    font-size: 10px;
+  }
+  .touch-actions svg {
+    width: 17px;
+    height: 17px;
+  }
+  .touch-actions .jump-action {
+    width: 62px;
+    height: 62px;
+  }
+  .touch-actions .burst-action {
+    top: 8px;
+    width: 48px;
+    height: 48px;
+  }
+  .interact-action {
+    left: 70px;
+    bottom: 2px;
+  }
+  .shoot-action {
+    right: 2px;
+    width: 56px;
+    height: 56px;
+  }
+  .swap .sprint-action {
+    left: 70px;
+    bottom: 2px;
+  }
+  .swap .interact-action {
+    left: 0;
+    bottom: 0;
   }
   .joystick {
     bottom: 45px;
