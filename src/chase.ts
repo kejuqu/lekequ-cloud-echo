@@ -143,7 +143,8 @@ export class Chase {
     const runTime = Math.min(dt, CHASE_DURATION - this.elapsed);
     this.travelled += runTime * this.speed;
     this.elapsed = Math.min(CHASE_DURATION, this.elapsed + dt);
-    this.gap = Math.min(18, this.gap + dt * (this.sprinting ? 1.5 : 0.1));
+    // 野兽始终紧跟：普通奔跑完全同速（间距不变），冲刺时它也跟着加速，仅略慢于人物。
+    this.gap = Math.min(18, this.gap + dt * (this.sprinting ? 0.6 : 0));
     this.vy -= 20 * dt;
     this.jumpHeight = Math.max(0, this.jumpHeight + this.vy * dt);
     if (this.jumpHeight === 0) this.vy = 0;
